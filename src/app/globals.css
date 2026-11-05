@@ -1,0 +1,163 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* ── Jaaymaa Design Tokens ── */
+    --ink:      #0F1E3D;   /* Encre — textes sombres */
+    --sun:      #FFC83D;   /* Soleil — action principale */
+    --hibiscus: #C8265A;   /* Hibiscus — accents */
+    --baobab:   #0E7C66;   /* Baobab — succès / paiement */
+    --nuit:     #0A1530;   /* Nuit — espace vendeur */
+    --papier:   #FFFBF2;   /* Papier — cartes / tickets */
+    --muted:    #3F4B69;
+    --line:     #E1E6F0;
+    --ghost:    #C3CCE6;
+    --bg:       #FFFBF2;
+
+    /* Legacy aliases (tailwind config) */
+    --surface:  #FFFFFF;
+    --chip:     #F0EDE8;
+    --hero:     #0F1E3D;
+    --rose:     #C8265A;
+    --leaf:     #0E7C66;
+    --sun-alt:  #FFC83D;
+  }
+
+  body {
+    background-color: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-instrument), sans-serif;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    min-height: 100svh;
+    overflow-x: clip;
+  }
+
+  /* Keep mobile browsers from zooming when a small form control receives focus. */
+  @media (max-width: 767px) {
+    input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]),
+    select,
+    textarea {
+      font-size: 16px !important;
+    }
+  }
+
+  * { -webkit-font-smoothing: antialiased; }
+}
+
+@layer utilities {
+  /* ── Gradients texte ── */
+  .text-gradient {
+    background: linear-gradient(135deg, #FFC83D 0%, #FF9B21 50%, #C8265A 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .text-gradient-gold {
+    background: linear-gradient(120deg, #FFC83D 0%, #FF9B21 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* ── Wax patterns (comme dans le design) ── */
+  .wax-soleil {
+    background-color: #0E7C66;
+    background-image:
+      radial-gradient(circle, #FFC83D 28%, transparent 28%),
+      radial-gradient(circle, #C8265A 12%, transparent 12%),
+      radial-gradient(circle at 0 0, #0B5E4E 12%, transparent 12%),
+      radial-gradient(circle at 100% 100%, #0B5E4E 12%, transparent 12%);
+    background-size: 40px 40px;
+    background-position: 0 0, 0 0, 0 0, 0 0;
+  }
+  .wax-losange {
+    background-color: #0F1E3D;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='24'%3E%3Cpolygon points='18,3 31,12 18,21 5,12' fill='%23FFC83D'/%3E%3C/svg%3E");
+    background-size: 36px 24px;
+  }
+  .wax-hibiscus {
+    background-color: #C8265A;
+    background-image:
+      radial-gradient(circle, transparent 37%, #FFC83D 37%, #FFC83D 55%, transparent 55%),
+      radial-gradient(circle, #0F1E3D 15%, transparent 15%);
+    background-size: 40px 40px;
+  }
+  .wax-vague {
+    background-color: #FFC83D;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='24'%3E%3Cpath d='M0 12Q9 0 18 12T36 12' fill='none' stroke='%230F1E3D' stroke-width='4'/%3E%3C/svg%3E");
+    background-size: 36px 24px;
+  }
+
+  /* ── Ticket shape (bords en dents de scie) ── */
+  .ticket-cut {
+    --cut: 9.3px;
+    -webkit-mask-image: radial-gradient(circle at 0 100%, transparent var(--cut), #000 calc(var(--cut) + 0.5px)),
+      radial-gradient(circle at 100% 100%, transparent var(--cut), #000 calc(var(--cut) + 0.5px));
+    mask-image: radial-gradient(circle at 0 100%, transparent var(--cut), #000 calc(var(--cut) + 0.5px)),
+      radial-gradient(circle at 100% 100%, transparent var(--cut), #000 calc(var(--cut) + 0.5px));
+    -webkit-mask-composite: source-in;
+    mask-composite: intersect;
+  }
+
+  /* Shadow offset style (design: contour encre 2.5px, décalage 4px) */
+  .shadow-ink {
+    box-shadow: 4px 4px 0 #0F1E3D;
+  }
+  .shadow-ink-sm {
+    box-shadow: 3px 3px 0 #0F1E3D;
+  }
+
+  /* ── Dot grid textures ── */
+  .dot-grid {
+    background-image: radial-gradient(circle, #0F1E3D18 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+  .dot-grid-light {
+    background-image: radial-gradient(circle, #ffffff18 1px, transparent 1px);
+    background-size: 28px 28px;
+  }
+  .circle-grid-light {
+    background-image:
+      radial-gradient(circle, transparent 54%, #ffffff12 54%, #ffffff12 56%, transparent 56%),
+      radial-gradient(circle, #ffffff18 15%, transparent 15%);
+    background-size: 80px 80px;
+  }
+
+  /* ── Animations ── */
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-12px); }
+  }
+  .animate-float { animation: float 5s ease-in-out infinite; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .animate-fade-up { animation: fadeUp 0.5s ease-out forwards; }
+
+  @keyframes ping-slow {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.3; transform: scale(1.8); }
+  }
+  .animate-ping-slow { animation: ping-slow 2.4s ease-in-out infinite; }
+
+  @keyframes slideUp {
+    from { transform: translateY(100%); opacity: 0; }
+    to   { transform: translateY(0); opacity: 1; }
+  }
+  .animate-slide-up { animation: slideUp 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+
+  /* ── Misc ── */
+  .glass {
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.15);
+  }
+  .scrollbar-none { scrollbar-width: none; }
+  .scrollbar-none::-webkit-scrollbar { display: none; }
+}

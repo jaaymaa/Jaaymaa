@@ -31,14 +31,14 @@
 | **Boutiques en ligne** | Présenter une marque, ses produits et les informations utiles aux clients. |
 | **Espace vendeur** | Gérer la boutique, le catalogue, les commandes, les abonnements et les notifications. |
 | **Explorer** | Découvrir des boutiques et parcourir leurs produits; les boutiques Pro+ bénéficient d’une mise en avant. |
-| **Administration** | Suivre les comptes, les boutiques, les commandes, les abonnements et les réglages de la plateforme. |
+| **Administration web** | Suivre les comptes, boutiques, commandes, abonnements et réglages de la plateforme. |
 | **Jaaymaa Admin pour iOS** | Application native SwiftUI d’administration, en cours de développement. |
 
 ## Une expérience adaptée au commerce sénégalais
 
 - **Commande directe** : les clients peuvent parcourir une boutique et commander sans créer de compte.
 - **Partage facile** : chaque vendeur dispose d’une vitrine à partager, notamment sur WhatsApp.
-- **Paiements familiers** : prise en charge des moyens configurés par la boutique, dont le paiement à la livraison, Wave et Orange Money.
+- **Paiements familiers** : paiement à la livraison, Wave et Orange Money selon les moyens activés par la boutique.
 - **Gestion sur mobile** : les outils vendeurs sont conçus pour rester pratiques sur téléphone.
 - **Découverte des boutiques** : l’Explorer aide les clients à trouver de nouveaux vendeurs.
 
@@ -49,18 +49,66 @@
 | Application web | Next.js 16, React 19, TypeScript, Tailwind CSS |
 | Déploiement web | Cloudflare Workers et OpenNext |
 | Données et médias | Cloudflare D1, R2 et Drizzle ORM |
-| Application admin iOS | SwiftUI, avec compilation distante prévue via Codemagic |
+| Application admin iOS | SwiftUI, projet Xcode généré avec XcodeGen, compilation distante via Codemagic |
+
+## Démarrer le projet web
+
+### Prérequis
+
+- Node.js 20 ou plus récent
+- npm
+- PowerShell sur Windows (ou un terminal équivalent sur macOS/Linux)
+
+### Installation sous Windows
+
+~~~powershell
+git clone https://github.com/jaaymaa/Jaaymaa.git
+cd Jaaymaa
+npm install
+Copy-Item .env.example .env.local
+npx wrangler d1 migrations apply jaayma-db --local
+npm run preview
+~~~
+
+Le fichier `.env.local` contient la configuration locale. Il est ignoré par Git; garde les clés et valeurs privées hors des commits.
+
+Pour l’interface seule avec Next.js, lance `npm run dev`. Pour vérifier l’application avec les liaisons Cloudflare simulées localement (D1, R2), utilise `npm run preview` après avoir appliqué les migrations locales.
+
+### Vérifications disponibles
+
+~~~powershell
+npm run lint
+npx tsc --noEmit
+npm test
+npm run build:cloudflare
+~~~
+
+## Application iOS avec Codemagic
+
+Le code SwiftUI se trouve dans `ios/JaaymaaAdmin`. Le workflow Codemagic est défini à la racine du dépôt dans `codemagic.yaml`. Il produit une app de simulateur non signée sur un Mac cloud; le code peut être modifié depuis Windows.
+
+Consulte le [guide de compilation iOS avec Codemagic](docs/IOS-ADMIN-CODEMAGIC.md) pour connecter le dépôt, lancer le workflow et préparer plus tard une distribution TestFlight.
+
+## Structure du dépôt
+
+| Chemin | Contenu |
+| --- | --- |
+| `src/app` | Pages du site, espace vendeur, administration et API |
+| `src/components` | Composants d’interface réutilisables |
+| `src/db` et `src/services` | Accès aux données et logique métier côté serveur |
+| `drizzle` | Schéma, migrations et données de démonstration locales |
+| `ios/JaaymaaAdmin` | Application SwiftUI d’administration |
+| `public` | Logo, icônes, badges et ressources visuelles |
+| `docs` et `design` | Guides du projet et identité graphique |
 
 ## Identité Jaaymaa
 
-La palette reprend le bleu encre, le jaune soleil et le rose hibiscus. Les motifs géométriques s’inspirent des textiles et couleurs qui ont nourri l’identité visuelle du produit.
+La palette reprend le bleu encre, le jaune soleil et le rose hibiscus. Les motifs géométriques s’inspirent des textiles et des couleurs qui ont nourri l’identité visuelle du produit.
 
-
-## Liens
-
-- [Site Jaaymaa](https://jaayma-sn.jaayma.workers.dev)
-- [Explorer les boutiques](https://jaayma-sn.jaayma.workers.dev/explorer)
-- [Ouvrir une boutique](https://jaayma-sn.jaayma.workers.dev/inscription)
+- [Logo officiel Jaaymaa (SVG)](docs/assets/jaaymaa-logo.svg)
+- [Charte graphique](design/jaayma-charte-graphique.svg)
+- [Guide d’utilisation de l’administration](docs/ADMIN-GUIDE-FR.md)
+- [Runbook et procédures de développement](docs/RUNBOOK.md)
 
 <p align="center">
   <strong>Jaaymaa</strong><br />

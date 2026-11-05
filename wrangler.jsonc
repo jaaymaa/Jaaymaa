@@ -1,0 +1,71 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "jaayma-sn",
+  "main": "worker.js",
+  "compatibility_date": "2024-12-30",
+  "compatibility_flags": [
+    "nodejs_compat",
+    "nodejs_compat_populate_process_env"
+  ],
+  "minify": true,
+  "keep_vars": true,
+  "vars": {
+    "GA_MEASUREMENT_ID": "G-2SVKFRMHT3",
+    "GA_PROPERTY_ID": "559433041",
+    "VAPID_PUBLIC_KEY": "BG0SHmogGbWQSZEwl30pplsq6etXD5ud4o1992XyP31E8EungN37gjpUxVYhg-94DpMYAmFKZe1euZyXCkbjWmA",
+    "VAPID_SUBJECT": "mailto:jaaymasn1@gmail.com",
+    "NEXT_INC_CACHE_R2_PREFIX": "next-incremental-cache",
+    "NEXT_PUBLIC_R2_PUBLIC_URL": ""
+  },
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "jaayma-db",
+      "database_id": "5fb9f57b-ca34-4f3a-b491-f01c353f1e2e"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "NEXT_INC_CACHE_R2_BUCKET",
+      "bucket_name": "jaayma-next-cache"
+    },
+    {
+      "binding": "MEDIA_BUCKET",
+      "bucket_name": "jaayma-images"
+    }
+  ],
+  "kv_namespaces": [
+    {
+      "binding": "JAAYMA_ROUTING",
+      "id": "1e61258b2bdf4f02a0a6214431a78ccf"
+    }
+  ],
+  "services": [
+    {
+      "binding": "WORKER_SELF_REFERENCE",
+      "service": "jaayma-sn"
+    }
+  ],
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "NEXT_CACHE_DO_QUEUE",
+        "class_name": "DOQueueHandler"
+      },
+      {
+        "name": "NEXT_TAG_CACHE_DO_SHARDED",
+        "class_name": "DOShardedTagCache"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["DOQueueHandler", "DOShardedTagCache"]
+    }
+  ]
+}

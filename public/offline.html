@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hors ligne | Jaaymaa</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: #F3F5FA;
+      color: #0F1E3D;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      text-align: center;
+      box-sizing: border-box;
+      padding: 20px;
+    }
+    .badge {
+      display: inline-block;
+      background: #FFE9A8;
+      color: #5A4200;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      margin-bottom: 16px;
+    }
+    h1 {
+      font-size: 28px;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+    p {
+      color: #5B6785;
+      font-size: 15px;
+      max-width: 380px;
+      line-height: 1.5;
+      margin-bottom: 24px;
+    }
+    button {
+      background-color: #0F1E3D;
+      color: #FFFFFF;
+      border: none;
+      padding: 12px 24px;
+      font-size: 14px;
+      font-weight: 600;
+      border-radius: 12px;
+      cursor: pointer;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+  </style>
+</head>
+<body>
+  <div class="badge">Connexion perdue</div>
+  <h1>Vous êtes hors ligne</h1>
+  <p>Impossible de joindre le réseau internet actuellement. Vérifiez vos données mobiles ou votre Wi-Fi puis réessayez.</p>
+  <button onclick="window.location.reload()">Réessayer</button>
+</body>
+</html>
