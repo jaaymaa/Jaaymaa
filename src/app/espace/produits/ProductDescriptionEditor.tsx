@@ -8,7 +8,6 @@ import Placeholder from "@tiptap/extension-placeholder";
 import Link from "@tiptap/extension-link";
 import {
   Bold,
-  Heading2,
   Italic,
   Link2,
   List,

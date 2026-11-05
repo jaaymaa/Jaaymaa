@@ -49,7 +49,9 @@ function ProductModal({
   const sheetRef = useRef<HTMLDivElement>(null);
   const dragOffsetYRef = useRef(0);
   const onCloseRef = useRef(onClose);
-  onCloseRef.current = onClose;
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
   const themeForeground = themeColor.toUpperCase() === "#FFC83D" ? "#0F1E3D" : "#FFFFFF";
 
   const productOptions: ProductOption[] = (() => {
