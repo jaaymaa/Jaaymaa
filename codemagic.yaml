@@ -27,3 +27,43 @@ workflows:
     artifacts:
       - build/ios/Build/Products/Debug-iphonesimulator/JaaymaaAdmin.app
       - /tmp/xcodebuild_logs/*.log
+
+  ios-admin-sideload:
+    name: Jaaymaa Admin · IPA pour Sideloadly
+    max_build_duration: 60
+    instance_type: mac_mini_m2
+    environment:
+      xcode: "27.1"
+    scripts:
+      - name: Generate the Xcode project
+        script: |
+          if ! command -v xcodegen >/dev/null 2>&1; then
+            brew install xcodegen
+          fi
+          cd "$CM_BUILD_DIR/ios"
+          xcodegen generate --spec project.yml
+      - name: Build for physical iPhone without signing
+        script: |
+          set -euo pipefail
+          xcodebuild \
+            -project "$CM_BUILD_DIR/ios/JaaymaaAdmin.xcodeproj" \
+            -scheme JaaymaaAdmin \
+            -sdk iphoneos \
+            -configuration Debug \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath "$CM_BUILD_DIR/build/ios-device" \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+      - name: Package unsigned IPA for Sideloadly
+        script: |
+          set -euo pipefail
+          APP_PATH="$CM_BUILD_DIR/build/ios-device/Build/Products/Debug-iphoneos/JaaymaaAdmin.app"
+          test -d "$APP_PATH"
+          mkdir -p "$CM_BUILD_DIR/build/ipa/Payload"
+          ditto "$APP_PATH" "$CM_BUILD_DIR/build/ipa/Payload/JaaymaaAdmin.app"
+          cd "$CM_BUILD_DIR/build/ipa"
+          ditto -c -k --sequesterRsrc --keepParent Payload "$CM_BUILD_DIR/build/JaaymaaAdmin-sideload.ipa"
+          unzip -Z1 "$CM_BUILD_DIR/build/JaaymaaAdmin-sideload.ipa" | grep -q '^Payload/JaaymaaAdmin.app/Info.plist$'
+    artifacts:
+      - build/JaaymaaAdmin-sideload.ipa
+      - /tmp/xcodebuild_logs/*.log

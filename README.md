@@ -32,7 +32,7 @@
 | **Espace vendeur** | Gérer la boutique, le catalogue, les commandes, les abonnements et les notifications. |
 | **Explorer** | Découvrir des boutiques et parcourir leurs produits; les boutiques Pro+ bénéficient d’une mise en avant. |
 | **Administration web** | Suivre les comptes, boutiques, commandes, abonnements et réglages de la plateforme. |
-| **Jaaymaa Admin pour iOS** | Application native SwiftUI d’administration, en cours de développement. |
+| **Jaaymaa Admin pour iOS** | Application native SwiftUI d’administration, compilée en IPA pour installation personnelle avec Sideloadly. |
 
 ## Une expérience adaptée au commerce sénégalais
 
@@ -49,7 +49,7 @@
 | Application web | Next.js 16, React 19, TypeScript, Tailwind CSS |
 | Déploiement web | Cloudflare Workers et OpenNext |
 | Données et médias | Cloudflare D1, R2 et Drizzle ORM |
-| Application admin iOS | SwiftUI, projet Xcode généré avec XcodeGen, compilation distante via Codemagic |
+| Application admin iOS | SwiftUI, XcodeGen et Codemagic; IPA iPhone pour Sideloadly |
 
 ## Démarrer le projet web
 
@@ -85,9 +85,11 @@ npm run build:cloudflare
 
 ## Application iOS avec Codemagic
 
-Le code SwiftUI se trouve dans `ios/JaaymaaAdmin`. Le workflow Codemagic est défini à la racine du dépôt dans `codemagic.yaml`. Il produit une app de simulateur non signée sur un Mac cloud; le code peut être modifié depuis Windows.
+Le code SwiftUI se trouve dans `ios/JaaymaaAdmin`. Depuis Windows, lance le workflow manuel **ios-admin-sideload** dans Codemagic pour récupérer `JaaymaaAdmin-sideload.ipa`. Le workflow **ios-admin-simulator** reste disponible pour produire une app de simulateur.
 
-Consulte le [guide de compilation iOS avec Codemagic](docs/IOS-ADMIN-CODEMAGIC.md) pour connecter le dépôt, lancer le workflow et préparer plus tard une distribution TestFlight.
+L’IPA est compilé sans signature; Sideloadly le signe lors de l’installation sur ton iPhone avec ton identifiant Apple. Il n’est pas nécessaire d’ajouter tes identifiants Apple ou des certificats au dépôt ou à Codemagic. Le téléphone doit utiliser iOS 26 ou une version ultérieure.
+
+Consulte le [guide d’installation iOS avec Sideloadly](docs/IOS-ADMIN-CODEMAGIC.md) pour télécharger l’IPA, activer le mode développeur et installer l’application.
 
 ## Structure du dépôt
 

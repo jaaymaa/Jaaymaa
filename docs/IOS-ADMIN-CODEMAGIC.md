@@ -1,24 +1,39 @@
-# App iOS Jaaymaa Admin avec Codemagic
+# Installer Jaaymaa Admin sur iPhone avec Sideloadly
 
-L’application native se trouve dans `ios/JaaymaaAdmin`. Elle partage le dépôt avec le site Next.js, mais reste une app SwiftUI séparée. Le projet Xcode est généré à partir de `ios/project.yml` par XcodeGen pendant le build; aucun Mac n’est nécessaire pour modifier le code depuis Windows.
+L’application d’administration native est développée en SwiftUI dans `ios/JaaymaaAdmin`. Le projet Xcode est généré à partir de `ios/project.yml` avec XcodeGen. Tu peux modifier le code sous Windows; Codemagic le compile sur un Mac distant.
 
-L’icône Jaaymaa Admin est dans `Assets.xcassets/AppIcon.appiconset` au format 1024 × 1024. Elle reprend le symbole Jaaymaa; iOS applique son masque et ses variantes d’apparence. La couleur d’accent native vient de la palette Jaaymaa.
+## Générer le fichier IPA
 
-## Premier build depuis Windows
+1. Dans Codemagic, ouvre l’application reliée à `jaaymaa/Jaaymaa` et sélectionne la branche `main`.
+2. Lance le workflow manuel **ios-admin-sideload**.
+3. Une fois le build terminé, télécharge l’artefact **JaaymaaAdmin-sideload.ipa**.
 
-1. Envoie le dépôt sur le fournisseur Git relié à Codemagic.
-2. Dans Codemagic, ajoute cette application et autorise l’accès au dépôt.
-3. Codemagic détecte le `codemagic.yaml` à la racine. Lance manuellement le workflow **Jaaymaa Admin · iOS Simulator**.
-4. Le workflow utilise un Mac cloud avec Xcode 27.1, génère le projet Xcode et produit une app de simulateur non signée.
+Le workflow compile une application iPhone sans signature Apple et l’emballe en IPA. Il ne demande ni certificat Apple Developer ni mot de passe Apple dans Codemagic. Sideloadly signe l’IPA au moment de l’installation.
 
-Le workflow est manuel : les changements courants du site ne déclencheront pas automatiquement un build iOS.
+Le workflow **ios-admin-simulator** produit séparément une application destinée au simulateur Xcode; ce fichier `.app` ne s’installe pas sur un iPhone.
 
-## Installation sur iPhone et TestFlight
+## Installer avec Sideloadly sous Windows
 
-Le fichier de simulateur sert à compiler et vérifier la base de l’app; il ne s’installe pas sur un iPhone réel. Pour distribuer sur appareil ou via TestFlight, il faudra un compte Apple Developer actif, un enregistrement de l’app dans App Store Connect, puis un workflow Codemagic signé. La clé App Store Connect et les certificats restent dans les intégrations et les variables secrètes Codemagic, jamais dans le dépôt.
+1. Installe Sideloadly depuis son [site officiel](https://sideloadly.io/). Sur Windows, Sideloadly demande les versions bureau d’iTunes et d’iCloud téléchargées depuis Apple, pas les versions Microsoft Store.
+2. Sur l’iPhone, active le mode développeur dans **Réglages → Confidentialité et sécurité → Mode développeur**.
+3. Connecte l’iPhone au PC avec un câble USB et accepte **Faire confiance à cet ordinateur** sur le téléphone.
+4. Ouvre Sideloadly, ajoute `JaaymaaAdmin-sideload.ipa`, puis choisis l’iPhone.
+5. Saisis ton identifiant Apple directement dans Sideloadly et lance l’installation. Ne partage pas ton mot de passe Apple avec Jaaymaa ou Codemagic.
+6. Si iOS demande d’approuver le profil, ouvre **Réglages → Général → VPN et gestion de l’appareil** et fais confiance au profil associé.
 
-## Activation de l’accès admin mobile
+Un compte Apple gratuit permet d’utiliser l’application pendant 7 jours avant de la resigner. Sideloadly peut la renouveler automatiquement si l’iPhone peut rejoindre le PC par USB ou Wi-Fi; sinon, relance l’installation chaque semaine. Un compte Apple Developer payant peut prolonger la signature jusqu’à un an. [FAQ Sideloadly](https://sideloadly.io/faq)
 
-L’API mobile vérifie la même liste `ADMIN_PHONES` que l’administration web, stocke les tentatives de connexion sous forme de clés IP hachées, et l’app garde son jeton dans le Trousseau iOS. Avant de publier cette API, appliquer la migration `drizzle/migrations/0001_admin_mobile_login_rate_limit.sql` à D1. Cette migration n’a pas été appliquée à la base distante et l’API n’a pas été déployée dans cette étape.
+## Compatibilité
 
-L’API mobile est exemptée du mode maintenance, mais chaque endpoint de données exige un jeton de session valide associé à un numéro présent dans `ADMIN_PHONES`.
+- Identifiant de l’app : `sn.jaayma.admin`
+- Version minimale : iOS 26
+- Appareil : iPhone ou iPad
+- L’IPA Sideloadly est une installation personnelle; ce n’est pas une version TestFlight ou App Store.
+
+## Connexion à l’administration
+
+La compilation de l’IPA ne déploie pas l’API mobile sur le site et ne modifie pas D1. Pour que la connexion admin fonctionne, les routes `/api/admin/ios/*` doivent être déployées sur le Worker et la migration `drizzle/migrations/0001_admin_mobile_login_rate_limit.sql` doit être appliquée à D1 après une sauvegarde. N’applique pas cette migration distante avant la sauvegarde prévue par le runbook.
+
+## Protection des identifiants
+
+Le dépôt ne contient pas d’identifiant Apple, de certificat de signature ni de clé privée de distribution. Saisis tes informations Apple uniquement dans Sideloadly sur ton PC.
