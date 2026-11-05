@@ -75,9 +75,11 @@ private enum SecureTokenStore {
     }
 
     static func save(_ token: String) -> Bool {
-        let key = [kSecClass as String: kSecClassGenericPassword,
-                   kSecAttrService as String: service,
-                   kSecAttrAccount as String: account]
+        let key: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: account
+        ]
         SecItemDelete(key as CFDictionary)
         var item = key
         item[kSecValueData as String] = Data(token.utf8)
@@ -86,9 +88,12 @@ private enum SecureTokenStore {
     }
 
     static func clear() {
-        SecItemDelete([kSecClass as String: kSecClassGenericPassword,
-                       kSecAttrService as String: service,
-                       kSecAttrAccount as String: account] as CFDictionary)
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: account
+        ]
+        SecItemDelete(query as CFDictionary)
     }
 }
 
@@ -296,13 +301,14 @@ private struct AdminLoginView: View {
 private struct AdminShellView: View {
     @EnvironmentObject private var session: AdminSessionStore
     @Environment(\.horizontalSizeClass) private var sizeClass
-    @State private var selection: AdminSection = .overview
+    @State private var sidebarSelection: AdminSection? = .overview
+    @State private var tabSelection: AdminSection = .overview
 
     var body: some View {
         Group {
             if sizeClass == .regular {
                 NavigationSplitView {
-                    List(selection: $selection) {
+                    List(selection: $sidebarSelection) {
                         Section("Plateforme") {
                             ForEach(AdminSection.allCases) { section in
                                 Label(section.title, systemImage: section.symbol).tag(section)
@@ -314,34 +320,36 @@ private struct AdminShellView: View {
                     .navigationTitle("Jaaymaa Admin")
                     .toolbar { ToolbarItem(placement: .topBarTrailing) { signOutButton } }
                 } detail: {
-                    NavigationStack { AdminSectionView(section: selection) }
+                    NavigationStack { AdminSectionView(section: sidebarSelection ?? .overview) }
                 }
                 .tint(JaaymaStyle.ink)
             } else {
-                TabView(selection: $selection) {
-                    tab(.overview)
-                    tab(.shops)
-                    tab(.orders)
-                    tab(.accounts)
-                    NavigationStack { AdminMoreView() }
-                        .tabItem { Label("Plus", systemImage: "ellipsis.circle") }
-                        .tag(AdminSection.settings)
+                TabView(selection: $tabSelection) {
+                    Tab(shortTitle(.overview), systemImage: AdminSection.overview.symbol, value: AdminSection.overview) {
+                        NavigationStack { AdminSectionView(section: .overview) }
+                    }
+                    Tab(shortTitle(.shops), systemImage: AdminSection.shops.symbol, value: AdminSection.shops) {
+                        NavigationStack { AdminSectionView(section: .shops) }
+                    }
+                    Tab(shortTitle(.orders), systemImage: AdminSection.orders.symbol, value: AdminSection.orders) {
+                        NavigationStack { AdminSectionView(section: .orders) }
+                    }
+                    Tab(shortTitle(.accounts), systemImage: AdminSection.accounts.symbol, value: AdminSection.accounts) {
+                        NavigationStack { AdminSectionView(section: .accounts) }
+                    }
+                    Tab("Plus", systemImage: "ellipsis.circle", value: AdminSection.settings) {
+                        NavigationStack { AdminMoreView() }
+                    }
                 }
                 .tint(JaaymaStyle.ink)
             }
         }
-        .toolbarBackground(.visible, for: .tabBar)
+        .toolbarBackgroundVisibility(.visible, for: .tabBar)
     }
 
     private var signOutButton: some View {
         Button { Task { await session.signOut() } } label: { Image(systemName: "rectangle.portrait.and.arrow.right") }
             .accessibilityLabel("Se déconnecter")
-    }
-
-    private func tab(_ section: AdminSection) -> some View {
-        NavigationStack { AdminSectionView(section: section) }
-            .tabItem { Label(shortTitle(section), systemImage: section.symbol) }
-            .tag(section)
     }
 
     private func shortTitle(_ section: AdminSection) -> String {
@@ -440,7 +448,7 @@ private struct AdminSectionView: View {
             }
             Spacer(minLength: 0)
             Image(systemName: section.symbol).font(.system(size: 16, weight: .bold)).foregroundStyle(JaaymaStyle.ink)
-                .padding(12).glassEffect(.regular.tint(JaaymaStyle.sun.opacity(0.42)), in: Circle())
+                .padding(12).background(JaaymaStyle.sun.opacity(0.42), in: Circle())
         }
         .padding(.bottom, 4)
     }
