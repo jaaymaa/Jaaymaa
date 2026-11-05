@@ -88,7 +88,7 @@ struct ShopListContent: View {
                         .foregroundStyle(JaaymaStyle.ink)
 
                     if let owner = shop.owner {
-                        Text("\(owner.name.isEmpty ? "Vendeur" : owner.name) · \(owner.phone)")
+                        Text("\(owner.name?.isEmpty == true ? "Vendeur" : (owner.name ?? "Vendeur")) · \(owner.phone ?? "")")
                             .font(.system(size: 12, weight: .medium))
                             .foregroundStyle(JaaymaStyle.muted)
                     } else {

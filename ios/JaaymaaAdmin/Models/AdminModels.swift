@@ -30,6 +30,7 @@ struct AdminMetrics: Decodable {
     let totalShops: Int
     let activeShops: Int
     let suspendedShops: Int
+    let draftShops: Int
     let sellers: Int
     let activeProducts: Int
     let totalOrders: Int
@@ -168,6 +169,12 @@ struct AnalyticsPage: Decodable, Identifiable {
     var id: String { path }
 }
 
+// MARK: - Page Info
+struct PageInfo {
+    let current: Int
+    let total: Int
+}
+
 // MARK: - Notifications
 struct AdminBroadcast: Decodable, Identifiable {
     let id: String
@@ -179,6 +186,8 @@ struct AdminBroadcast: Decodable, Identifiable {
     let failedCount: Int
     let createdAt: String
 }
+
+typealias AdminNotificationItem = AdminBroadcast
 
 struct AdminNotifications: Decodable {
     let history: AdminPage<AdminBroadcast>
@@ -209,12 +218,12 @@ enum AdminSectionData {
     case notifications(AdminNotifications)
     case settings(AdminSettings)
 
-    var pageInfo: (current: Int, total: Int)? {
+    var pageInfo: PageInfo? {
         switch self {
-        case .shops(let value): return (value.page, value.totalPages)
-        case .subscriptions(let value): return (value.shops.page, value.shops.totalPages)
-        case .accounts(let value): return (value.page, value.totalPages)
-        case .orders(let value): return (value.page, value.totalPages)
+        case .shops(let value): return PageInfo(current: value.page, total: value.totalPages)
+        case .subscriptions(let value): return PageInfo(current: value.shops.page, total: value.shops.totalPages)
+        case .accounts(let value): return PageInfo(current: value.page, total: value.totalPages)
+        case .orders(let value): return PageInfo(current: value.page, total: value.totalPages)
         default: return nil
         }
     }

@@ -50,3 +50,4 @@ struct AdminPageHeader: View {
         .shadow(color: JaaymaStyle.ink, radius: 0, x: 4, y: 4)
     }
 }
+

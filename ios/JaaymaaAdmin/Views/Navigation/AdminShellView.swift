@@ -5,6 +5,7 @@ struct AdminShellView: View {
     @Environment(\.horizontalSizeClass) private var sizeClass
     @State private var activeSection: AdminSection = .overview
     @State private var showMoreSheet = false
+    @State private var sidebarSelection: AdminSection? = .overview
 
     var body: some View {
         Group {
@@ -209,10 +210,7 @@ struct AdminShellView: View {
 
     private var ipadLayout: some View {
         NavigationSplitView {
-            List(selection: Binding(
-                get: { activeSection },
-                set: { if let val = $0 { activeSection = val } }
-            )) {
+            List(selection: $sidebarSelection) {
                 Section {
                     ForEach(AdminSection.allCases) { section in
                         HStack(spacing: 12) {
@@ -252,8 +250,11 @@ struct AdminShellView: View {
             }
         } detail: {
             NavigationStack {
-                AdminSectionView(section: activeSection)
+                AdminSectionView(section: sidebarSelection ?? activeSection)
             }
+        }
+        .onChange(of: sidebarSelection) { _, newVal in
+            if let val = newVal { activeSection = val }
         }
         .tint(JaaymaStyle.ink)
     }

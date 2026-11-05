@@ -283,12 +283,12 @@ struct AdminSectionView: View {
         await load()
     }
 
-    private func updateShop(_ id: String, changes: [String: Any]) async throws {
+    private func updateShop(_ id: String, _ values: [String: Any]) async throws {
         guard let token = session.token else { throw AdminAPIError.unauthorized }
-        var values = changes
-        values["shopId"] = id
+        var body = values
+        body["shopId"] = id
         let endpoint = section == .subscriptions ? "subscriptions" : "shops"
-        try await AdminAPI.shared.patch(endpoint, token: token, values: values)
+        try await AdminAPI.shared.patch(endpoint, token: token, values: body)
         await load()
     }
 

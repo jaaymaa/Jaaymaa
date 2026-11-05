@@ -128,7 +128,7 @@ struct NotificationContent: View {
         }
     }
 
-    private func notificationHistoryRow(_ item: AdminNotificationItem) -> some View {
+    private func notificationHistoryRow(_ item: AdminBroadcast) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(alignment: .top) {
                 VStack(alignment: .leading, spacing: 2) {

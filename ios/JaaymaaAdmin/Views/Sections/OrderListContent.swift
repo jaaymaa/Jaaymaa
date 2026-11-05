@@ -54,9 +54,9 @@ struct OrderListContent: View {
                         .font(.system(size: 14, weight: .black, design: .rounded))
                         .foregroundStyle(JaaymaStyle.ink)
 
-                    if let phone = order.customerPhone, let url = URL(string: "tel:\(phone)") {
+                    if let url = URL(string: "tel:\(order.customerPhone)") {
                         Link(destination: url) {
-                            Text(phone)
+                            Text(order.customerPhone)
                                 .font(.system(size: 11, weight: .medium, design: .monospaced))
                                 .foregroundStyle(JaaymaStyle.muted)
                         }
