@@ -8,8 +8,7 @@ struct SettingsContent: View {
     @State private var proPriceText: String
     @State private var proPlusPriceText: String
     @State private var message: String?
-    @State private var isSuccess = false
-    @State private var isSaving = false
+    @State private var saving = false
 
     init(value: AdminSettings, onChange: @escaping ([String: Any]) async throws -> Void) {
         self.value = value
@@ -21,19 +20,50 @@ struct SettingsContent: View {
     }
 
     var body: some View {
-        VStack(spacing: 18) {
-            // Platform Controls Section
-            SectionCard(
-                title: "Contrôles de la plateforme",
-                subtitle: "Modifications appliquées instantanément"
-            ) {
+        VStack(alignment: .leading, spacing: 18) {
+            // Infrastructure Health Card
+            SectionCard(title: "Infrastructure Jaaymaa", subtitle: "État des services en direct") {
+                VStack(spacing: 10) {
+                    healthRow(
+                        title: "Base de données Cloudflare D1",
+                        status: value.databaseConnected ? "Connectée" : "Erreur",
+                        isOk: value.databaseConnected,
+                        symbol: "externaldrive.fill"
+                    )
+
+                    healthRow(
+                        title: "Notifications Push FCM",
+                        status: value.pushConfigured ? "Opérationnel" : "Non configuré",
+                        isOk: value.pushConfigured,
+                        symbol: "bell.badge.fill"
+                    )
+
+                    healthRow(
+                        title: "Administrateurs autorisés",
+                        status: "\(value.adminCount) actif\(value.adminCount > 1 ? "s" : "")",
+                        isOk: value.adminCount > 0,
+                        symbol: "person.badge.key.fill"
+                    )
+
+                    healthRow(
+                        title: "Appareils abonnés",
+                        status: "\(value.pushSubscriptions) appareil\(value.pushSubscriptions > 1 ? "s" : "")",
+                        isOk: true,
+                        symbol: "iphone.gen3"
+                    )
+                }
+            }
+
+            // Platform Toggles Card
+            SectionCard(title: "Contrôles de la plateforme", subtitle: "Modifications en temps réel sur le site public") {
                 VStack(spacing: 12) {
                     Toggle(isOn: $explorerEnabled) {
                         VStack(alignment: .leading, spacing: 2) {
-                            Text("Annuaire Explorer public")
-                                .font(.system(size: 14, weight: .bold))
-                            Text("Rendre la page /explorer accessible aux visiteurs")
-                                .font(.system(size: 11, weight: .medium))
+                            Text("Catalogue Explorer public")
+                                .font(.system(size: 14, weight: .bold, design: .rounded))
+                                .foregroundStyle(JaaymaStyle.ink)
+                            Text("Affiche la page /explorer aux visiteurs")
+                                .font(.system(size: 12))
                                 .foregroundStyle(JaaymaStyle.muted)
                         }
                     }
@@ -42,14 +72,15 @@ struct SettingsContent: View {
                         save(["explorerEnabled": enabled])
                     }
 
-                    Divider()
+                    Divider().background(JaaymaStyle.line)
 
                     Toggle(isOn: $maintenanceEnabled) {
                         VStack(alignment: .leading, spacing: 2) {
                             Text("Mode maintenance")
-                                .font(.system(size: 14, weight: .bold))
-                            Text("Bloquer l'accès public pour maintenance")
-                                .font(.system(size: 11, weight: .medium))
+                                .font(.system(size: 14, weight: .bold, design: .rounded))
+                                .foregroundStyle(JaaymaStyle.ink)
+                            Text("Bloque l'accès aux clients et affiche la page travaux")
+                                .font(.system(size: 12))
                                 .foregroundStyle(JaaymaStyle.muted)
                         }
                     }
@@ -60,151 +91,127 @@ struct SettingsContent: View {
                 }
             }
 
-            // Subscription Pricing Section
-            SectionCard(
-                title: "Tarifs d’abonnement",
-                subtitle: "Montants mensuels en Francs CFA (XOF)"
-            ) {
+            // Subscription Pricing Card
+            SectionCard(title: "Tarifs d’abonnement", subtitle: "Prix affichés aux commerçants en FCFA") {
                 VStack(alignment: .leading, spacing: 14) {
-                    HStack(spacing: 12) {
-                        VStack(alignment: .leading, spacing: 5) {
-                            Text("TARIF PRO")
-                                .font(.system(size: 10, weight: .black))
-                                .tracking(1.2)
-                                .foregroundStyle(JaaymaStyle.muted)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("TARIF FORMULE PRO / MOIS")
+                            .font(.system(size: 10, weight: .black))
+                            .tracking(1.0)
+                            .foregroundStyle(JaaymaStyle.muted)
 
-                            TextField("5000", text: $proPriceText)
+                        HStack {
+                            TextField("Ex: 5000", text: $proPriceText)
                                 .font(.system(size: 16, weight: .bold, design: .monospaced))
                                 .keyboardType(.numberPad)
-                                .padding(12)
-                                .background(Color.white, in: RoundedRectangle(cornerRadius: 12))
-                                .overlay(RoundedRectangle(cornerRadius: 12).stroke(JaaymaStyle.ink, lineWidth: 1.8))
-                        }
 
-                        VStack(alignment: .leading, spacing: 5) {
-                            Text("TARIF PRO+")
-                                .font(.system(size: 10, weight: .black))
-                                .tracking(1.2)
+                            Text("FCFA")
+                                .font(.system(size: 12, weight: .black))
                                 .foregroundStyle(JaaymaStyle.muted)
-
-                            TextField("10000", text: $proPlusPriceText)
-                                .font(.system(size: 16, weight: .bold, design: .monospaced))
-                                .keyboardType(.numberPad)
-                                .padding(12)
-                                .background(Color.white, in: RoundedRectangle(cornerRadius: 12))
-                                .overlay(RoundedRectangle(cornerRadius: 12).stroke(JaaymaStyle.ink, lineWidth: 1.8))
                         }
+                        .padding(12)
+                        .background(JaaymaStyle.paper, in: RoundedRectangle(cornerRadius: 12))
+                        .overlay(RoundedRectangle(cornerRadius: 12).stroke(JaaymaStyle.ink, lineWidth: 1.2))
                     }
 
-                    if let message {
-                        HStack(spacing: 8) {
-                            Image(systemName: isSuccess ? "checkmark.circle.fill" : "exclamationmark.octagon.fill")
-                            Text(message)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("TARIF FORMULE PRO+ / MOIS")
+                            .font(.system(size: 10, weight: .black))
+                            .tracking(1.0)
+                            .foregroundStyle(JaaymaStyle.muted)
+
+                        HStack {
+                            TextField("Ex: 10000", text: $proPlusPriceText)
+                                .font(.system(size: 16, weight: .bold, design: .monospaced))
+                                .keyboardType(.numberPad)
+
+                            Text("FCFA")
+                                .font(.system(size: 12, weight: .black))
+                                .foregroundStyle(JaaymaStyle.muted)
                         }
-                        .font(.system(size: 12, weight: .bold))
-                        .foregroundStyle(isSuccess ? JaaymaStyle.baobab : JaaymaStyle.darkHibiscus)
+                        .padding(12)
+                        .background(JaaymaStyle.paper, in: RoundedRectangle(cornerRadius: 12))
+                        .overlay(RoundedRectangle(cornerRadius: 12).stroke(JaaymaStyle.ink, lineWidth: 1.2))
                     }
 
                     Button {
                         guard let pro = Int(proPriceText), let proPlus = Int(proPlusPriceText) else {
-                            message = "Veuillez entrer des montants valides."
-                            isSuccess = false
+                            message = "Saisis des montants entiers en FCFA."
                             return
                         }
                         save(["proPriceXof": pro, "proPlusPriceXof": proPlus])
                     } label: {
                         HStack(spacing: 8) {
-                            if isSaving {
-                                JaaymaMiniLoader(encre: true, dotSize: 7, spacing: 5)
+                            if saving {
+                                JaaymaMiniLoader(encre: true, dotSize: 8, spacing: 6)
+                                Text("Enregistrement…")
+                                    .font(.system(size: 14, weight: .black, design: .rounded))
                             } else {
                                 Image(systemName: "checkmark")
+                                    .font(.system(size: 12, weight: .black))
+                                Text("Mettre à jour les tarifs")
+                                    .font(.system(size: 14, weight: .black, design: .rounded))
                             }
-                            Text("Enregistrer les tarifs")
                         }
-                        .font(.system(size: 14, weight: .black, design: .rounded))
                         .foregroundStyle(JaaymaStyle.ink)
                         .frame(maxWidth: .infinity)
-                        .padding(.vertical, 13)
-                        .background(JaaymaStyle.sun, in: RoundedRectangle(cornerRadius: 12))
-                        .overlay(RoundedRectangle(cornerRadius: 12).stroke(JaaymaStyle.ink, lineWidth: 2))
+                        .padding(.vertical, 14)
+                        .background(JaaymaStyle.sun, in: RoundedRectangle(cornerRadius: 14))
+                        .overlay(RoundedRectangle(cornerRadius: 14).stroke(JaaymaStyle.ink, lineWidth: 2))
                         .shadow(color: JaaymaStyle.ink, radius: 0, x: 2.5, y: 2.5)
                     }
-                    .disabled(isSaving)
-                }
-            }
+                    .disabled(saving)
 
-            // Diagnostic & Infrastructure Cards
-            SectionCard(
-                title: "État des services Cloudflare",
-                subtitle: "Vérification de la production"
-            ) {
-                VStack(spacing: 10) {
-                    serviceRow(
-                        title: "Base de données Cloudflare D1",
-                        detail: value.databaseConnected ? "Opérationnelle · Réponses nominales" : "Indisponible",
-                        icon: "externaldrive.fill",
-                        status: value.databaseConnected
-                    )
-
-                    serviceRow(
-                        title: "Web Push / VAPID",
-                        detail: "\(value.pushSubscriptions) appareils enregistrés",
-                        icon: "bell.badge.fill",
-                        status: true
-                    )
-
-                    serviceRow(
-                        title: "Comptes administrateurs",
-                        detail: "\(value.adminCount) numéro(s) autorisé(s) sur ADMIN_PHONES",
-                        icon: "person.badge.key.fill",
-                        status: value.adminCount > 0
-                    )
+                    if let message {
+                        Text(message)
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundStyle(message.contains("enregistré") ? JaaymaStyle.baobab : JaaymaStyle.hibiscus)
+                            .padding(8)
+                    }
                 }
             }
         }
     }
 
-    private func serviceRow(title: String, detail: String, icon: String, status: Bool) -> some View {
-        HStack(spacing: 12) {
-            Image(systemName: icon)
-                .font(.system(size: 15, weight: .bold))
+    private func healthRow(title: String, status: String, isOk: Bool, symbol: String) -> some View {
+        HStack(spacing: 10) {
+            Image(systemName: symbol)
+                .font(.system(size: 13, weight: .bold))
                 .foregroundStyle(JaaymaStyle.ink)
-                .frame(width: 36, height: 36)
-                .background(status ? JaaymaStyle.mint : JaaymaStyle.pinkTone, in: RoundedRectangle(cornerRadius: 10))
-                .overlay(RoundedRectangle(cornerRadius: 10).stroke(JaaymaStyle.ink, lineWidth: 1.5))
+                .frame(width: 28, height: 28)
+                .background(JaaymaStyle.chip, in: RoundedRectangle(cornerRadius: 8))
 
-            VStack(alignment: .leading, spacing: 2) {
-                Text(title)
-                    .font(.system(size: 13, weight: .black, design: .rounded))
-                    .foregroundStyle(JaaymaStyle.ink)
-                Text(detail)
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundStyle(JaaymaStyle.muted)
-            }
+            Text(title)
+                .font(.system(size: 13, weight: .medium))
+                .foregroundStyle(JaaymaStyle.ink)
 
             Spacer()
 
-            Image(systemName: status ? "checkmark.circle.fill" : "exclamationmark.circle.fill")
-                .foregroundStyle(status ? JaaymaStyle.baobab : JaaymaStyle.hibiscus)
+            HStack(spacing: 4) {
+                Circle().fill(isOk ? JaaymaStyle.baobab : JaaymaStyle.hibiscus).frame(width: 6, height: 6)
+                Text(status)
+                    .font(.system(size: 11, weight: .bold))
+                    .foregroundStyle(isOk ? JaaymaStyle.baobab : JaaymaStyle.hibiscus)
+            }
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .background((isOk ? JaaymaStyle.mint : JaaymaStyle.pinkTone).opacity(0.4), in: Capsule())
         }
-        .padding(11)
-        .background(Color.white, in: RoundedRectangle(cornerRadius: 12))
-        .overlay(RoundedRectangle(cornerRadius: 12).stroke(JaaymaStyle.ink, lineWidth: 1.4))
+        .padding(10)
+        .background(JaaymaStyle.paper, in: RoundedRectangle(cornerRadius: 12))
     }
 
     private func save(_ values: [String: Any]) {
-        isSaving = true
-        message = nil
+        JaaymaHaptics.medium()
+        saving = true
         Task {
             do {
                 try await onChange(values)
-                isSuccess = true
-                message = "Modifications enregistrées avec succès."
+                message = "Réglage enregistré."
             } catch {
-                isSuccess = false
                 message = error.localizedDescription
             }
-            isSaving = false
+            saving = false
         }
     }
 }

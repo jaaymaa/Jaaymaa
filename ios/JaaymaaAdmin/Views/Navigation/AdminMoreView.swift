@@ -2,132 +2,149 @@ import SwiftUI
 
 struct AdminMoreView: View {
     @EnvironmentObject private var session: AdminSessionStore
-    @Binding var currentSection: AdminSection
     @Environment(\.dismiss) private var dismiss
+    @Binding var currentSection: AdminSection
+
+    init(currentSection: Binding<AdminSection> = .constant(.settings)) {
+        self._currentSection = currentSection
+    }
 
     private let moreSections: [AdminSection] = AdminSection.moreSections
 
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
-                    // Header
-                    HStack(spacing: 12) {
-                        BrandMark(size: 44, brutalist: true)
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("Administration")
-                                .font(.system(size: 10, weight: .black))
-                                .tracking(1.4)
-                                .foregroundStyle(JaaymaStyle.darkHibiscus)
-                            Text("Autres rubriques")
-                                .font(.system(size: 22, weight: .black, design: .rounded))
-                                .foregroundStyle(JaaymaStyle.ink)
-                        }
-                        Spacer()
-                    }
-                    .padding(.top, 10)
+                VStack(spacing: 20) {
+                    // Header Card
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("GESTION AVANCÉE")
+                            .font(.system(size: 10, weight: .black))
+                            .tracking(1.4)
+                            .foregroundStyle(JaaymaStyle.darkHibiscus)
 
-                    // Secondary sections grid / cards
-                    VStack(spacing: 12) {
+                        Text("Modules complémentaires")
+                            .font(.system(size: 22, weight: .black, design: .rounded))
+                            .foregroundStyle(JaaymaStyle.ink)
+
+                        Text("Accède aux abonnements, statistiques d’audience, alertes push et réglages système.")
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundStyle(JaaymaStyle.muted)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(16)
+                    .background(JaaymaStyle.sun.opacity(0.3), in: RoundedRectangle(cornerRadius: 18))
+                    .overlay(RoundedRectangle(cornerRadius: 18).stroke(JaaymaStyle.ink, lineWidth: 1.5))
+
+                    // 2x2 Symmetrical Grid for the 4 "More" sections
+                    LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)], spacing: 12) {
                         ForEach(moreSections) { section in
                             Button {
+                                JaaymaHaptics.selection()
                                 currentSection = section
                                 dismiss()
                             } label: {
-                                HStack(spacing: 14) {
-                                    Image(systemName: section.symbol)
-                                        .font(.system(size: 16, weight: .bold))
-                                        .foregroundStyle(JaaymaStyle.ink)
-                                        .frame(width: 42, height: 42)
-                                        .background(currentSection == section ? JaaymaStyle.sun : Color.white, in: RoundedRectangle(cornerRadius: 12))
-                                        .overlay(RoundedRectangle(cornerRadius: 12).stroke(JaaymaStyle.ink, lineWidth: 2))
+                                VStack(alignment: .leading, spacing: 12) {
+                                    HStack {
+                                        Image(systemName: section.symbol)
+                                            .font(.system(size: 16, weight: .bold))
+                                            .foregroundStyle(currentSection == section ? JaaymaStyle.ink : JaaymaStyle.sun)
+                                            .frame(width: 36, height: 36)
+                                            .background(
+                                                currentSection == section ? JaaymaStyle.sun : JaaymaStyle.ink,
+                                                in: RoundedRectangle(cornerRadius: 10)
+                                            )
+
+                                        Spacer()
+
+                                        if currentSection == section {
+                                            Circle()
+                                                .fill(JaaymaStyle.baobab)
+                                                .frame(width: 8, height: 8)
+                                        }
+                                    }
 
                                     VStack(alignment: .leading, spacing: 3) {
-                                        Text(section.title)
-                                            .font(.system(size: 15, weight: .bold, design: .rounded))
+                                        Text(section.shortTitle)
+                                            .font(.system(size: 15, weight: .black, design: .rounded))
                                             .foregroundStyle(JaaymaStyle.ink)
-                                        Text(section.eyebrow)
+
+                                        Text(section.title)
                                             .font(.system(size: 11, weight: .medium))
                                             .foregroundStyle(JaaymaStyle.muted)
                                             .lineLimit(1)
                                     }
-
-                                    Spacer()
-
-                                    Image(systemName: "chevron.right")
-                                        .font(.system(size: 12, weight: .bold))
-                                        .foregroundStyle(JaaymaStyle.muted)
                                 }
                                 .padding(14)
-                                .background(currentSection == section ? JaaymaStyle.sun.opacity(0.25) : JaaymaStyle.paper, in: RoundedRectangle(cornerRadius: 18))
-                                .overlay(RoundedRectangle(cornerRadius: 18).stroke(JaaymaStyle.ink, lineWidth: 2))
-                                .shadow(color: JaaymaStyle.ink, radius: 0, x: 3, y: 3)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .frame(minHeight: 110)
+                                .background(Color.white, in: RoundedRectangle(cornerRadius: 18))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 18)
+                                        .stroke(currentSection == section ? JaaymaStyle.ink : JaaymaStyle.ink.opacity(0.2), lineWidth: currentSection == section ? 2 : 1)
+                                )
+                                .shadow(
+                                    color: currentSection == section ? JaaymaStyle.ink : JaaymaStyle.ink.opacity(0.08),
+                                    radius: 0,
+                                    x: currentSection == section ? 2.5 : 1.5,
+                                    y: currentSection == section ? 2.5 : 1.5
+                                )
                             }
                             .buttonStyle(.plain)
                         }
                     }
 
-                    // Sign Out Card
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("COMPTE CONNECTÉ")
-                            .font(.system(size: 10, weight: .black))
-                            .tracking(1.2)
-                            .foregroundStyle(JaaymaStyle.muted)
-
+                    // Account & Disconnect Section
+                    VStack(spacing: 12) {
                         if let phone = session.userPhone {
                             HStack {
-                                Image(systemName: "person.badge.shield.checkmark.fill")
-                                    .foregroundStyle(JaaymaStyle.baobab)
-                                Text(phone)
-                                    .font(.system(size: 14, weight: .bold, design: .monospaced))
-                                    .foregroundStyle(JaaymaStyle.ink)
+                                HStack(spacing: 8) {
+                                    Circle().fill(JaaymaStyle.baobab).frame(width: 8, height: 8)
+                                    Text("Connecté en tant que")
+                                        .font(.system(size: 12, weight: .medium))
+                                        .foregroundStyle(JaaymaStyle.muted)
+                                }
                                 Spacer()
-                                Text("Admin")
-                                    .font(.system(size: 10, weight: .black))
-                                    .foregroundStyle(JaaymaStyle.darkHibiscus)
-                                    .padding(.horizontal, 8)
-                                    .padding(.vertical, 4)
-                                    .background(JaaymaStyle.sun, in: Capsule())
-                                    .overlay(Capsule().stroke(JaaymaStyle.ink, lineWidth: 1.5))
+                                Text(phone)
+                                    .font(.system(size: 13, weight: .bold, design: .monospaced))
+                                    .foregroundStyle(JaaymaStyle.ink)
                             }
-                            .padding(12)
-                            .background(Color.white, in: RoundedRectangle(cornerRadius: 14))
-                            .overlay(RoundedRectangle(cornerRadius: 14).stroke(JaaymaStyle.ink, lineWidth: 1.5))
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 10)
+                            .background(JaaymaStyle.chip, in: RoundedRectangle(cornerRadius: 12))
                         }
 
                         Button {
+                            JaaymaHaptics.medium()
                             dismiss()
                             Task { await session.signOut() }
                         } label: {
                             HStack(spacing: 8) {
                                 Image(systemName: "rectangle.portrait.and.arrow.right")
                                     .font(.system(size: 14, weight: .bold))
-                                Text("Se déconnecter")
-                                    .font(.system(size: 14, weight: .black, design: .rounded))
+                                Text("Se déconnecter de Jaaymaa")
+                                    .font(.system(size: 14, weight: .bold, design: .rounded))
                             }
+                            .foregroundStyle(JaaymaStyle.hibiscus)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 14)
-                            .foregroundStyle(JaaymaStyle.darkHibiscus)
-                            .background(JaaymaStyle.hibiscus.opacity(0.12), in: RoundedRectangle(cornerRadius: 14))
-                            .overlay(RoundedRectangle(cornerRadius: 14).stroke(JaaymaStyle.hibiscus, lineWidth: 2))
-                            .shadow(color: JaaymaStyle.hibiscus.opacity(0.5), radius: 0, x: 2, y: 2)
+                            .background(JaaymaStyle.hibiscus.opacity(0.1), in: RoundedRectangle(cornerRadius: 14))
+                            .overlay(RoundedRectangle(cornerRadius: 14).stroke(JaaymaStyle.hibiscus.opacity(0.3), lineWidth: 1.5))
                         }
                     }
-                    .padding(16)
-                    .background(JaaymaStyle.paper, in: RoundedRectangle(cornerRadius: 20))
-                    .overlay(RoundedRectangle(cornerRadius: 20).stroke(JaaymaStyle.ink, lineWidth: 2))
-                    .shadow(color: JaaymaStyle.ink, radius: 0, x: 3.5, y: 3.5)
+                    .padding(.top, 10)
                 }
                 .padding(20)
             }
             .background(JaaymaStyle.paper.ignoresSafeArea())
-            .navigationTitle("Navigation")
+            .navigationTitle("Autres modules")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("Fermer") { dismiss() }
-                        .font(.system(size: 14, weight: .black))
-                        .foregroundStyle(JaaymaStyle.ink)
+                    Button("Fermer") {
+                        dismiss()
+                    }
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundStyle(JaaymaStyle.ink)
                 }
             }
         }

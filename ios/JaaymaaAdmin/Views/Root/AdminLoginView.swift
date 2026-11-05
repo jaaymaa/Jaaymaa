@@ -4,14 +4,14 @@ struct AdminLoginView: View {
     @EnvironmentObject private var session: AdminSessionStore
     @State private var phone = ""
     @State private var password = ""
-    @State private var message: String?
     @State private var isLoading = false
+    @State private var message: String?
 
     var body: some View {
         ZStack {
             JaaymaStyle.nuit.ignoresSafeArea()
 
-            // Subtle top decorative glow
+            // Subtle top decorative sun glow
             VStack {
                 Circle()
                     .fill(JaaymaStyle.sun.opacity(0.08))
@@ -29,6 +29,7 @@ struct AdminLoginView: View {
                     // Brand Header
                     HStack(spacing: 14) {
                         BrandMark(size: 56, brutalist: true)
+
                         VStack(alignment: .leading, spacing: 3) {
                             HStack(spacing: 8) {
                                 Text("Jaaymaa")
@@ -55,7 +56,7 @@ struct AdminLoginView: View {
                     // Welcome Text
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Ton espace de pilotage")
-                            .font(.system(size: 32, weight: .black, design: .rounded))
+                            .font(.system(size: 30, weight: .black, design: .rounded))
                             .foregroundStyle(.white)
                             .lineSpacing(2)
 
@@ -67,6 +68,7 @@ struct AdminLoginView: View {
 
                     // Brutalist Login Card
                     VStack(alignment: .leading, spacing: 18) {
+                        // Phone Field
                         VStack(alignment: .leading, spacing: 7) {
                             Text("NUMÉRO DE TÉLÉPHONE")
                                 .font(.system(size: 10, weight: .black))
@@ -81,16 +83,15 @@ struct AdminLoginView: View {
                                 TextField("Ex: 774451982", text: $phone)
                                     .font(.system(size: 16, weight: .bold, design: .monospaced))
                                     .keyboardType(.phonePad)
-                                    .textContentType(.telephoneNumber)
                                     .textInputAutocapitalization(.never)
                                     .autocorrectionDisabled()
                             }
                             .padding(14)
                             .background(Color.white, in: RoundedRectangle(cornerRadius: 14))
-                            .overlay(RoundedRectangle(cornerRadius: 14).stroke(JaaymaStyle.ink, lineWidth: 2))
-                            .shadow(color: JaaymaStyle.ink.opacity(0.15), radius: 0, x: 2, y: 2)
+                            .overlay(RoundedRectangle(cornerRadius: 14).stroke(JaaymaStyle.ink, lineWidth: 1.5))
                         }
 
+                        // Password Field
                         VStack(alignment: .leading, spacing: 7) {
                             Text("MOT DE PASSE")
                                 .font(.system(size: 10, weight: .black))
@@ -104,25 +105,24 @@ struct AdminLoginView: View {
 
                                 SecureField("••••••••", text: $password)
                                     .font(.system(size: 16, weight: .bold))
-                                    .textContentType(.password)
+                                    .onSubmit(signIn)
                             }
                             .padding(14)
                             .background(Color.white, in: RoundedRectangle(cornerRadius: 14))
-                            .overlay(RoundedRectangle(cornerRadius: 14).stroke(JaaymaStyle.ink, lineWidth: 2))
-                            .shadow(color: JaaymaStyle.ink.opacity(0.15), radius: 0, x: 2, y: 2)
+                            .overlay(RoundedRectangle(cornerRadius: 14).stroke(JaaymaStyle.ink, lineWidth: 1.5))
                         }
 
+                        // Error Banner
                         if let message {
-                            HStack(alignment: .top, spacing: 9) {
-                                Image(systemName: "exclamationmark.octagon.fill")
-                                    .font(.system(size: 14, weight: .bold))
+                            HStack(spacing: 8) {
+                                Image(systemName: "exclamationmark.triangle.fill")
+                                    .font(.system(size: 13, weight: .bold))
                                     .foregroundStyle(JaaymaStyle.hibiscus)
-                                    .padding(.top, 1)
 
                                 Text(message)
                                     .font(.system(size: 12, weight: .bold))
-                                    .foregroundStyle(JaaymaStyle.darkHibiscus)
-                                    .lineSpacing(2)
+                                    .foregroundStyle(JaaymaStyle.hibiscus)
+                                    .lineLimit(3)
                             }
                             .padding(12)
                             .frame(maxWidth: .infinity, alignment: .leading)
@@ -130,7 +130,7 @@ struct AdminLoginView: View {
                             .overlay(RoundedRectangle(cornerRadius: 12).stroke(JaaymaStyle.hibiscus.opacity(0.3), lineWidth: 1.5))
                         }
 
-                        // Submit Button with Brutalist styling & Animated Mini Loader
+                        // Submit Button with Brutalist styling & Animated Brand Mini Loader
                         Button(action: signIn) {
                             HStack(spacing: 12) {
                                 if isLoading {
@@ -142,6 +142,7 @@ struct AdminLoginView: View {
                                     Text("Se connecter")
                                         .font(.system(size: 15, weight: .black, design: .rounded))
                                         .foregroundStyle(JaaymaStyle.ink)
+
                                     Image(systemName: "arrow.right")
                                         .font(.system(size: 13, weight: .black))
                                         .foregroundStyle(JaaymaStyle.ink)
@@ -162,11 +163,11 @@ struct AdminLoginView: View {
                     .overlay(RoundedRectangle(cornerRadius: 24).stroke(JaaymaStyle.ink, lineWidth: 2.5))
                     .shadow(color: JaaymaStyle.ink, radius: 0, x: 5, y: 5)
 
-                    // Footer
+                    // Footer Note
                     HStack(spacing: 6) {
                         Image(systemName: "lock.shield.fill")
                             .font(.system(size: 12))
-                        Text("Accès sécurisé · Réservé aux comptes autorisés Jaaymaa")
+                        Text("Accès sécurisé · Réservé aux comptes administrateurs Jaaymaa")
                             .font(.system(size: 11, weight: .medium))
                     }
                     .foregroundStyle(JaaymaStyle.ghost.opacity(0.8))
@@ -183,13 +184,17 @@ struct AdminLoginView: View {
     }
 
     private func signIn() {
+        guard !phone.isEmpty, !password.isEmpty else { return }
+        JaaymaHaptics.medium()
         isLoading = true
         message = nil
         Task {
             do {
                 try await session.signIn(phone: phone, password: password)
+                JaaymaHaptics.success()
             } catch {
                 message = error.localizedDescription
+                JaaymaHaptics.light()
             }
             isLoading = false
         }

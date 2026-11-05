@@ -12,57 +12,63 @@ struct AdminSectionView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
-                // Neo-Brutalist Page Title Header
+                // Symmetrical Neo-Brutalist Brand Page Header
                 AdminPageHeader(
                     eyebrow: section.eyebrow,
                     title: section.title,
                     description: section.description,
-                    badgeText: badgeTextForSection,
-                    badgeIcon: section == .overview ? "waveform.path.ecg" : section.symbol
+                    badgeText: pageBadgeText,
+                    badgeIcon: section.symbol
                 )
 
-                // Search Bar for Searchable Sections
+                // Search Bar (if section is searchable)
                 if section.isSearchable {
                     searchBar
                 }
 
-                // Main Content / Loaders / Errors
+                // Main Content / State
                 if loading && data == nil {
                     JaaymaScreenLoader(
                         label: "Chargement de \(section.shortTitle)…",
-                        subtitle: "Synchronisation en direct avec le Worker"
+                        subtitle: "Synchronisation des données en direct"
                     )
-                    .frame(minHeight: 340)
+                    .frame(minHeight: 280)
                 } else if let errorMessage {
-                    errorCard(errorMessage)
+                    errorView(errorMessage)
                 } else if let data {
                     content(data)
 
+                    // Symmetrical Pagination Bar
                     if let pageInfo = data.pageInfo {
                         paginationBar(pageInfo)
                     }
                 }
+
+                // Symmetrical Bottom Inset so content is not obscured by floating dock
+                Spacer(minLength: 80)
             }
             .padding(.horizontal, 16)
             .padding(.top, 16)
-            .padding(.bottom, 95) // Clear room for the floating bottom pill bar
-            .frame(maxWidth: 1100, alignment: .leading)
+            .padding(.bottom, 20)
+            .frame(maxWidth: 1000, alignment: .leading)
             .frame(maxWidth: .infinity)
         }
         .background(JaaymaStyle.paper.ignoresSafeArea())
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
+            ToolbarItem(placement: .principal) {
+                Text(section.shortTitle)
+                    .font(.system(size: 15, weight: .black, design: .rounded))
+                    .foregroundStyle(JaaymaStyle.ink)
+            }
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
+                    JaaymaHaptics.light()
                     Task { await load() }
                 } label: {
-                    if loading {
-                        JaaymaMiniLoader(encre: true, dotSize: 6, spacing: 4)
-                    } else {
-                        Image(systemName: "arrow.clockwise")
-                            .font(.system(size: 13, weight: .bold))
-                            .foregroundStyle(JaaymaStyle.ink)
-                    }
+                    Image(systemName: "arrow.clockwise")
+                        .font(.system(size: 13, weight: .bold))
+                        .foregroundStyle(JaaymaStyle.ink)
                 }
                 .accessibilityLabel("Actualiser")
             }
@@ -77,6 +83,13 @@ struct AdminSectionView: View {
         }
     }
 
+    private var pageBadgeText: String? {
+        if let data, let pageInfo = data.pageInfo {
+            return "Page \(pageInfo.current)/\(pageInfo.total)"
+        }
+        return nil
+    }
+
     // MARK: - Search Bar
 
     private var searchBar: some View {
@@ -85,12 +98,13 @@ struct AdminSectionView: View {
                 .font(.system(size: 14, weight: .bold))
                 .foregroundStyle(JaaymaStyle.muted)
 
-            TextField("Rechercher (nom, téléphone, référence)…", text: $query)
+            TextField("Rechercher dans \(section.shortTitle.lowercased())…", text: $query)
                 .font(.system(size: 14, weight: .medium))
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled()
                 .onSubmit {
                     page = 1
+                    JaaymaHaptics.light()
                     Task { await load() }
                 }
 
@@ -101,143 +115,133 @@ struct AdminSectionView: View {
                     Task { await load() }
                 } label: {
                     Image(systemName: "xmark.circle.fill")
+                        .font(.system(size: 14))
                         .foregroundStyle(JaaymaStyle.muted)
                 }
             }
 
             Button {
                 page = 1
+                JaaymaHaptics.light()
                 Task { await load() }
             } label: {
                 Text("Filtrer")
                     .font(.system(size: 12, weight: .black, design: .rounded))
                     .foregroundStyle(JaaymaStyle.ink)
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 8)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 7)
                     .background(JaaymaStyle.sun, in: RoundedRectangle(cornerRadius: 10))
-                    .overlay(RoundedRectangle(cornerRadius: 10).stroke(JaaymaStyle.ink, lineWidth: 1.8))
-                    .shadow(color: JaaymaStyle.ink, radius: 0, x: 2, y: 2)
+                    .overlay(RoundedRectangle(cornerRadius: 10).stroke(JaaymaStyle.ink, lineWidth: 1.5))
+                    .shadow(color: JaaymaStyle.ink, radius: 0, x: 1.5, y: 1.5)
             }
         }
-        .padding(12)
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
         .background(Color.white, in: RoundedRectangle(cornerRadius: 16))
-        .overlay(RoundedRectangle(cornerRadius: 16).stroke(JaaymaStyle.ink, lineWidth: 2))
-        .shadow(color: JaaymaStyle.ink, radius: 0, x: 3, y: 3)
+        .overlay(RoundedRectangle(cornerRadius: 16).stroke(JaaymaStyle.ink, lineWidth: 1.5))
+        .shadow(color: JaaymaStyle.ink, radius: 0, x: 2.5, y: 2.5)
     }
 
-    // MARK: - Pagination Bar
+    // MARK: - Error View
 
-    private func paginationBar(_ info: PageInfo) -> some View {
-        HStack {
-            Button {
-                page = max(1, page - 1)
-                Task { await load() }
-            } label: {
-                HStack(spacing: 4) {
-                    Image(systemName: "chevron.left")
-                    Text("Précédent")
-                }
-                .font(.system(size: 12, weight: .black, design: .rounded))
-                .foregroundStyle(info.current <= 1 ? JaaymaStyle.muted : JaaymaStyle.ink)
-                .padding(.horizontal, 14)
-                .padding(.vertical, 8)
-                .background(info.current <= 1 ? Color.gray.opacity(0.1) : Color.white, in: RoundedRectangle(cornerRadius: 10))
-                .overlay(RoundedRectangle(cornerRadius: 10).stroke(JaaymaStyle.ink, lineWidth: 1.5))
-                .shadow(color: info.current <= 1 ? .clear : JaaymaStyle.ink, radius: 0, x: 2, y: 2)
-            }
-            .disabled(info.current <= 1)
+    private func errorView(_ message: String) -> some View {
+        VStack(spacing: 16) {
+            Image(systemName: "wifi.exclamationmark")
+                .font(.system(size: 38, weight: .bold))
+                .foregroundStyle(JaaymaStyle.hibiscus)
 
-            Spacer()
+            VStack(spacing: 6) {
+                Text("Impossible de charger les données")
+                    .font(.system(size: 17, weight: .black, design: .rounded))
+                    .foregroundStyle(JaaymaStyle.ink)
 
-            Text("Page \(info.current) / \(info.total)")
-                .font(.system(size: 12, weight: .bold))
-                .foregroundStyle(JaaymaStyle.muted)
-
-            Spacer()
-
-            Button {
-                page = min(info.total, page + 1)
-                Task { await load() }
-            } label: {
-                HStack(spacing: 4) {
-                    Text("Suivant")
-                    Image(systemName: "chevron.right")
-                }
-                .font(.system(size: 12, weight: .black, design: .rounded))
-                .foregroundStyle(info.current >= info.total ? JaaymaStyle.muted : JaaymaStyle.ink)
-                .padding(.horizontal, 14)
-                .padding(.vertical, 8)
-                .background(info.current >= info.total ? Color.gray.opacity(0.1) : Color.white, in: RoundedRectangle(cornerRadius: 10))
-                .overlay(RoundedRectangle(cornerRadius: 10).stroke(JaaymaStyle.ink, lineWidth: 1.5))
-                .shadow(color: info.current >= info.total ? .clear : JaaymaStyle.ink, radius: 0, x: 2, y: 2)
-            }
-            .disabled(info.current >= info.total)
-        }
-        .padding(14)
-        .background(JaaymaStyle.paper, in: RoundedRectangle(cornerRadius: 16))
-        .overlay(RoundedRectangle(cornerRadius: 16).stroke(JaaymaStyle.ink, lineWidth: 2))
-        .shadow(color: JaaymaStyle.ink, radius: 0, x: 3, y: 3)
-    }
-
-    // MARK: - Error Card
-
-    private func errorCard(_ message: String) -> some View {
-        VStack(spacing: 14) {
-            HStack(spacing: 10) {
-                Image(systemName: "wifi.exclamationmark")
-                    .font(.system(size: 20, weight: .bold))
-                    .foregroundStyle(JaaymaStyle.darkHibiscus)
-                Text("Connexion interrompue")
-                    .font(.system(size: 16, weight: .black, design: .rounded))
-                    .foregroundStyle(JaaymaStyle.darkHibiscus)
+                Text(message)
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundStyle(JaaymaStyle.muted)
+                    .multilineTextAlignment(.center)
             }
 
-            Text(message)
-                .font(.system(size: 13, weight: .medium))
-                .foregroundStyle(JaaymaStyle.muted)
-                .multilineTextAlignment(.center)
-
             Button {
+                JaaymaHaptics.medium()
                 Task { await load() }
             } label: {
                 HStack(spacing: 8) {
                     Image(systemName: "arrow.clockwise")
                     Text("Réessayer")
                 }
-                .font(.system(size: 13, weight: .black, design: .rounded))
+                .font(.system(size: 14, weight: .black, design: .rounded))
                 .foregroundStyle(JaaymaStyle.ink)
                 .padding(.horizontal, 20)
-                .padding(.vertical, 10)
-                .background(JaaymaStyle.sun, in: RoundedRectangle(cornerRadius: 12))
-                .overlay(RoundedRectangle(cornerRadius: 12).stroke(JaaymaStyle.ink, lineWidth: 2))
-                .shadow(color: JaaymaStyle.ink, radius: 0, x: 2.5, y: 2.5)
+                .padding(.vertical, 12)
+                .background(JaaymaStyle.sun, in: Capsule())
+                .overlay(Capsule().stroke(JaaymaStyle.ink, lineWidth: 1.5))
+                .shadow(color: JaaymaStyle.ink, radius: 0, x: 2, y: 2)
             }
         }
         .padding(24)
         .frame(maxWidth: .infinity)
-        .background(JaaymaStyle.hibiscus.opacity(0.1), in: RoundedRectangle(cornerRadius: 20))
-        .overlay(RoundedRectangle(cornerRadius: 20).stroke(JaaymaStyle.hibiscus.opacity(0.4), lineWidth: 2))
+        .background(Color.white, in: RoundedRectangle(cornerRadius: 20))
+        .overlay(RoundedRectangle(cornerRadius: 20).stroke(JaaymaStyle.ink, lineWidth: 1.5))
+        .shadow(color: JaaymaStyle.ink, radius: 0, x: 3, y: 3)
     }
 
-    private var badgeTextForSection: String? {
-        switch section {
-        case .overview: return "Données en direct"
-        case .shops:
-            if case .shops(let page) = data { return "\(page.total) boutique\(page.total != 1 ? "s" : "")" }
-            return nil
-        case .accounts:
-            if case .accounts(let page) = data { return "\(page.total) compte\(page.total != 1 ? "s" : "")" }
-            return nil
-        case .orders:
-            if case .orders(let page) = data { return "\(page.total) commande\(page.total != 1 ? "s" : "")" }
-            return nil
-        case .subscriptions:
-            if case .subscriptions(let page) = data { return "\(page.shops.total) boutique\(page.shops.total != 1 ? "s" : "")" }
-            return nil
-        default:
-            return nil
+    // MARK: - Symmetrical Pagination Bar
+
+    private func paginationBar(_ pageInfo: PageInfo) -> some View {
+        HStack {
+            Button {
+                JaaymaHaptics.light()
+                page = max(1, page - 1)
+                Task { await load() }
+            } label: {
+                HStack(spacing: 6) {
+                    Image(systemName: "chevron.left")
+                    Text("Précédent")
+                }
+                .font(.system(size: 12, weight: .bold))
+                .foregroundStyle(pageInfo.current <= 1 ? JaaymaStyle.muted : JaaymaStyle.ink)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 9)
+                .background(pageInfo.current <= 1 ? Color.gray.opacity(0.12) : Color.white, in: RoundedRectangle(cornerRadius: 12))
+                .overlay(RoundedRectangle(cornerRadius: 12).stroke(JaaymaStyle.ink.opacity(pageInfo.current <= 1 ? 0.3 : 1.0), lineWidth: 1.5))
+                .shadow(color: pageInfo.current <= 1 ? .clear : JaaymaStyle.ink, radius: 0, x: 1.5, y: 1.5)
+            }
+            .disabled(pageInfo.current <= 1)
+
+            Spacer()
+
+            Text("Page \(pageInfo.current) sur \(pageInfo.total)")
+                .font(.system(size: 12, weight: .black, design: .rounded))
+                .foregroundStyle(JaaymaStyle.ink)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+                .background(JaaymaStyle.chip, in: Capsule())
+
+            Spacer()
+
+            Button {
+                JaaymaHaptics.light()
+                page = min(pageInfo.total, page + 1)
+                Task { await load() }
+            } label: {
+                HStack(spacing: 6) {
+                    Text("Suivant")
+                    Image(systemName: "chevron.right")
+                }
+                .font(.system(size: 12, weight: .bold))
+                .foregroundStyle(pageInfo.current >= pageInfo.total ? JaaymaStyle.muted : JaaymaStyle.ink)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 9)
+                .background(pageInfo.current >= pageInfo.total ? Color.gray.opacity(0.12) : Color.white, in: RoundedRectangle(cornerRadius: 12))
+                .overlay(RoundedRectangle(cornerRadius: 12).stroke(JaaymaStyle.ink.opacity(pageInfo.current >= pageInfo.total ? 0.3 : 1.0), lineWidth: 1.5))
+                .shadow(color: pageInfo.current >= pageInfo.total ? .clear : JaaymaStyle.ink, radius: 0, x: 1.5, y: 1.5)
+            }
+            .disabled(pageInfo.current >= pageInfo.total)
         }
+        .padding(.top, 6)
     }
+
+    // MARK: - Section View Router
 
     @ViewBuilder
     private func content(_ data: AdminSectionData) -> some View {
@@ -261,6 +265,8 @@ struct AdminSectionView: View {
         }
     }
 
+    // MARK: - API Actions
+
     private func load() async {
         guard let token = session.token else { return }
         loading = true
@@ -283,12 +289,12 @@ struct AdminSectionView: View {
         await load()
     }
 
-    private func updateShop(_ id: String, _ values: [String: Any]) async throws {
+    private func updateShop(_ id: String, changes: [String: Any]) async throws {
         guard let token = session.token else { throw AdminAPIError.unauthorized }
-        var body = values
-        body["shopId"] = id
+        var values = changes
+        values["shopId"] = id
         let endpoint = section == .subscriptions ? "subscriptions" : "shops"
-        try await AdminAPI.shared.patch(endpoint, token: token, values: body)
+        try await AdminAPI.shared.patch(endpoint, token: token, values: values)
         await load()
     }
 

@@ -2,27 +2,34 @@ import SwiftUI
 
 struct BrandMark: View {
     var size: CGFloat
-    var brutalist: Bool = true
+    var brutalist: Bool = false
 
     var body: some View {
         ZStack {
             JaaymaaTileShape().fill(JaaymaStyle.sun)
+
             JaaymaaJShape().stroke(
                 JaaymaStyle.ink,
                 style: StrokeStyle(lineWidth: size * 0.1, lineCap: .round, lineJoin: .round)
             )
+
             Circle()
                 .fill(JaaymaStyle.hibiscus)
                 .frame(width: size * 0.125, height: size * 0.125)
                 .position(x: size * 64 / 120, y: size * 28 / 120)
         }
         .frame(width: size, height: size)
-        .overlay(JaaymaaTileShape().stroke(JaaymaStyle.ink, lineWidth: max(1.5, size * 0.035)))
+        .overlay(
+            JaaymaaTileShape().stroke(
+                JaaymaStyle.ink,
+                lineWidth: brutalist ? max(1.5, size * 0.04) : max(1, size * 0.025)
+            )
+        )
         .shadow(
             color: brutalist ? JaaymaStyle.ink : JaaymaStyle.ink.opacity(0.16),
             radius: brutalist ? 0 : 6,
-            x: brutalist ? max(2, size * 0.04) : 0,
-            y: brutalist ? max(2, size * 0.04) : 3
+            x: brutalist ? 2 : 0,
+            y: brutalist ? 2 : 3
         )
         .accessibilityHidden(true)
     }

@@ -17,18 +17,20 @@ struct SectionCard<Content: View>: View {
                 Text(title)
                     .font(.system(size: 17, weight: .black, design: .rounded))
                     .foregroundStyle(JaaymaStyle.ink)
+
                 if let subtitle {
                     Text(subtitle)
-                        .font(.system(size: 11, weight: .bold))
+                        .font(.system(size: 12, weight: .medium))
                         .foregroundStyle(JaaymaStyle.muted)
                 }
             }
+
             content
         }
-        .padding(18)
+        .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(JaaymaStyle.paper, in: RoundedRectangle(cornerRadius: 22))
-        .overlay(RoundedRectangle(cornerRadius: 22).stroke(JaaymaStyle.ink, lineWidth: 2.5))
-        .shadow(color: JaaymaStyle.ink, radius: 0, x: 4, y: 4)
+        .background(Color.white, in: RoundedRectangle(cornerRadius: 20))
+        .overlay(RoundedRectangle(cornerRadius: 20).stroke(JaaymaStyle.ink, lineWidth: 1.5))
+        .shadow(color: JaaymaStyle.ink, radius: 0, x: 3, y: 3)
     }
 }

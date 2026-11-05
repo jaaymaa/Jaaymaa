@@ -4,101 +4,96 @@ struct AccountListContent: View {
     let page: AdminPage<AdminAccount>
 
     var body: some View {
-        SectionCard(title: "Comptes vendeurs", subtitle: "\(page.total) commerçants enregistrés") {
+        SectionCard(title: "Comptes commerçants", subtitle: "\(page.total) compte\(page.total > 1 ? "s" : "") au total") {
             if page.items.isEmpty {
-                VStack(spacing: 8) {
+                HStack(spacing: 12) {
                     Image(systemName: "person.2")
-                        .font(.system(size: 32))
+                        .font(.system(size: 20))
                         .foregroundStyle(JaaymaStyle.muted)
-                    Text("Aucun compte trouvé.")
-                        .font(.system(size: 14, weight: .bold))
+                    Text("Aucun commerçant trouvé.")
+                        .font(.system(size: 13, weight: .medium))
                         .foregroundStyle(JaaymaStyle.muted)
                 }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 24)
+                .padding(.vertical, 12)
             } else {
                 VStack(spacing: 12) {
                     ForEach(page.items) { account in
-                        accountCard(account)
+                        accountRow(account)
+
+                        if account.id != page.items.last?.id {
+                            Divider().background(JaaymaStyle.line)
+                        }
                     }
                 }
             }
         }
     }
 
-    private func accountCard(_ account: AdminAccount) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack(spacing: 12) {
-                Image(systemName: "person.crop.circle.fill")
-                    .font(.system(size: 24))
-                    .foregroundStyle(JaaymaStyle.ink)
-                    .frame(width: 40, height: 40)
-                    .background(JaaymaStyle.pinkTone, in: RoundedRectangle(cornerRadius: 11))
-                    .overlay(RoundedRectangle(cornerRadius: 11).stroke(JaaymaStyle.ink, lineWidth: 1.5))
+    private func accountRow(_ account: AdminAccount) -> some View {
+        HStack(alignment: .top, spacing: 12) {
+            // Avatar Squircle
+            Image(systemName: "person.2.fill")
+                .font(.system(size: 14, weight: .bold))
+                .foregroundStyle(JaaymaStyle.ink)
+                .frame(width: 38, height: 38)
+                .background(JaaymaStyle.pinkTone, in: RoundedRectangle(cornerRadius: 11))
+                .overlay(RoundedRectangle(cornerRadius: 11).stroke(JaaymaStyle.ink, lineWidth: 1.2))
 
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(account.name.isEmpty ? "Vendeur Jaaymaa" : account.name)
-                        .font(.system(size: 15, weight: .black, design: .rounded))
+            VStack(alignment: .leading, spacing: 3) {
+                HStack(spacing: 6) {
+                    Text(account.name.isEmpty ? "Commerçant Jaaymaa" : account.name)
+                        .font(.system(size: 14, weight: .black, design: .rounded))
                         .foregroundStyle(JaaymaStyle.ink)
 
-                    if let url = URL(string: "tel:\(account.phone)") {
-                        Link(destination: url) {
-                            HStack(spacing: 4) {
-                                Image(systemName: "phone.fill")
-                                    .font(.system(size: 10))
-                                Text(account.phone)
-                                    .font(.system(size: 12, weight: .bold, design: .monospaced))
-                            }
-                            .foregroundStyle(JaaymaStyle.goldText)
-                        }
-                    } else {
-                        Text(account.phone)
-                            .font(.system(size: 12, weight: .bold, design: .monospaced))
-                            .foregroundStyle(JaaymaStyle.muted)
+                    if account.shopCount > 0 {
+                        Text("\(account.shopCount) btk")
+                            .font(.system(size: 9, weight: .black))
+                            .foregroundStyle(JaaymaStyle.baobab)
+                            .padding(.horizontal, 5)
+                            .padding(.vertical, 2)
+                            .background(JaaymaStyle.mint, in: RoundedRectangle(cornerRadius: 5))
                     }
                 }
 
-                Spacer()
-
-                HStack(spacing: 12) {
-                    statPill(label: "Boutiques", count: account.shopCount)
-                    statPill(label: "Commandes", count: account.orderCount)
-                }
-            }
-
-            if !account.shops.isEmpty {
                 HStack(spacing: 6) {
-                    Text("Boutiques :")
+                    Image(systemName: "phone.fill")
+                        .font(.system(size: 10))
+                        .foregroundStyle(JaaymaStyle.muted)
+
+                    Text(account.phone)
+                        .font(.system(size: 12, weight: .bold, design: .monospaced))
+                        .foregroundStyle(JaaymaStyle.ink)
+                }
+
+                HStack(spacing: 6) {
+                    Text("\(account.orderCount) vente\(account.orderCount > 1 ? "s" : "")")
                         .font(.system(size: 10, weight: .bold))
                         .foregroundStyle(JaaymaStyle.muted)
 
-                    ForEach(account.shops.prefix(3)) { shop in
-                        Text(shop.name)
-                            .font(.system(size: 10, weight: .bold))
-                            .padding(.horizontal, 7)
-                            .padding(.vertical, 3)
-                            .background(JaaymaStyle.chip, in: RoundedRectangle(cornerRadius: 6))
-                            .overlay(RoundedRectangle(cornerRadius: 6).stroke(JaaymaStyle.ink.opacity(0.2), lineWidth: 1))
-                            .foregroundStyle(JaaymaStyle.ink)
+                    if !account.shops.isEmpty {
+                        Text("·")
+                            .foregroundStyle(JaaymaStyle.muted)
+                        Text(account.shops.map { $0.name }.joined(separator: ", "))
+                            .font(.system(size: 10, weight: .medium))
+                            .foregroundStyle(JaaymaStyle.hibiscus)
+                            .lineLimit(1)
                     }
                 }
                 .padding(.top, 2)
             }
-        }
-        .padding(14)
-        .background(Color.white, in: RoundedRectangle(cornerRadius: 16))
-        .overlay(RoundedRectangle(cornerRadius: 16).stroke(JaaymaStyle.ink, lineWidth: 1.8))
-        .shadow(color: JaaymaStyle.ink, radius: 0, x: 2.5, y: 2.5)
-    }
 
-    private func statPill(label: String, count: Int) -> some View {
-        VStack(spacing: 1) {
-            Text("\(count)")
-                .font(.system(size: 14, weight: .black, design: .rounded))
-                .foregroundStyle(JaaymaStyle.ink)
-            Text(label)
-                .font(.system(size: 9, weight: .bold))
-                .foregroundStyle(JaaymaStyle.muted)
+            Spacer(minLength: 4)
+
+            // Quick Call Button
+            if let url = URL(string: "tel://\(account.phone)") {
+                Link(destination: url) {
+                    Image(systemName: "phone.circle.fill")
+                        .font(.system(size: 24))
+                        .foregroundStyle(JaaymaStyle.baobab)
+                }
+            }
         }
+        .padding(10)
+        .background(JaaymaStyle.paper, in: RoundedRectangle(cornerRadius: 14))
     }
 }

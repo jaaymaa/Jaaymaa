@@ -1,11 +1,11 @@
 import SwiftUI
 
-// MARK: - Mini Jumping Dots Loader (jaayma-loader-mini.svg)
+// MARK: - Mini Jumping Dots Loader (Matching jaayma-loader-mini.svg & jaayma-loader-mini-encre.svg)
 
 struct JaaymaMiniLoader: View {
     var encre: Bool = false
-    var dotSize: CGFloat = 11
-    var spacing: CGFloat = 8
+    var dotSize: CGFloat = 10
+    var spacing: CGFloat = 7
 
     private let duration: Double = 1.1
     private let offsets: [Double] = [0.0, 0.15, 0.30]
@@ -20,11 +20,11 @@ struct JaaymaMiniLoader: View {
                         .fill(dotColor(for: index))
                         .frame(width: dotSize, height: dotSize)
                         .scaleEffect(x: state.scaleX, y: state.scaleY, anchor: .bottom)
-                        .offset(y: state.offsetY * (dotSize / 11.0))
+                        .offset(y: state.offsetY * (dotSize / 10.0))
                 }
             }
         }
-        .frame(height: dotSize + 12)
+        .frame(height: dotSize + 10)
     }
 
     private func dotColor(for index: Int) -> Color {
@@ -49,11 +49,11 @@ struct JaaymaMiniLoader: View {
         let normalized = loopTime < 0 ? loopTime + duration : loopTime
         let progress = normalized / duration
 
-        // Keyframe reproduction from SVG:
+        // SVG Keyframe reproduction:
         // 0% - 15%: squash on ground: translateY(0), scale(1.2, 0.8)
         // 15% - 35%: jump up: translateY(-8), scale(0.92, 1.08)
         // 35% - 50%: land squash: translateY(0), scale(1.15, 0.85)
-        // 50% - 60%: settle to normal: translateY(0), scale(1.0, 1.0)
+        // 50% - 60%: settle: translateY(0), scale(1.0, 1.0)
         // 60% - 100%: rest at ground: translateY(0), scale(1.0, 1.0)
 
         if progress < 0.15 {
@@ -106,100 +106,75 @@ struct JaaymaMiniLoader: View {
     }
 }
 
-// MARK: - Screen Animated Loader (jaayma-loader.svg)
-
-struct JaaymaScreenLoader: View {
-    var label: String = "Chargement en cours…"
-    var subtitle: String? = "Actualisation des données en direct"
-    var size: CGFloat = 130
-
-    var body: some View {
-        VStack(spacing: 24) {
-            JaaymaAnimatedBadge(size: size)
-
-            VStack(spacing: 6) {
-                HStack(spacing: 6) {
-                    JaaymaMiniLoader(encre: false, dotSize: 7, spacing: 5)
-                    Text("CHARGEMENT")
-                        .font(.system(size: 11, weight: .black))
-                        .tracking(1.8)
-                        .foregroundStyle(JaaymaStyle.darkHibiscus)
-                }
-
-                Text(label)
-                    .font(.system(size: 17, weight: .black, design: .rounded))
-                    .foregroundStyle(JaaymaStyle.ink)
-
-                if let subtitle {
-                    Text(subtitle)
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundStyle(JaaymaStyle.muted)
-                }
-            }
-            .padding(.horizontal, 24)
-            .padding(.vertical, 14)
-            .background(JaaymaStyle.paper, in: RoundedRectangle(cornerRadius: 18))
-            .overlay(RoundedRectangle(cornerRadius: 18).stroke(JaaymaStyle.ink, lineWidth: 2))
-            .shadow(color: JaaymaStyle.ink, radius: 0, x: 3, y: 3)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .padding(32)
-    }
-}
-
-// MARK: - Animated Brand Badge (Ring + Breathe Tile + J Draw + Drop Dot)
+// MARK: - Animated Brand Badge (jaayma-loader.svg)
 
 struct JaaymaAnimatedBadge: View {
-    var size: CGFloat = 140
+    var size: CGFloat = 130
 
-    private let spinDuration: Double = 1.8
-    private let breatheDuration: Double = 2.4
+    private let ringCycle: Double = 1.8
+    private let tileCycle: Double = 2.4
 
     var body: some View {
         TimelineView(.animation) { timeline in
             let elapsed = timeline.date.timeIntervalSinceReferenceDate
-            let spinAngle = (elapsed.truncatingRemainder(dividingBy: spinDuration) / spinDuration) * 360.0
 
-            let breatheProgress = (elapsed.truncatingRemainder(dividingBy: breatheDuration) / breatheDuration)
-            let breatheState = calculateBreathe(progress: breatheProgress)
-            let jProgress = calculateJDraw(progress: breatheProgress)
-            let dotState = calculateDotDrop(progress: breatheProgress)
+            let ringAngle = (elapsed.truncatingRemainder(dividingBy: ringCycle) / ringCycle) * 360.0
+
+            let tileProgress = (elapsed.truncatingRemainder(dividingBy: tileCycle) / tileCycle)
+            let breatheState = calculateBreathe(progress: tileProgress)
+            let jProgress = calculateJDraw(progress: tileProgress)
+            let dotState = calculateDotDrop(progress: tileProgress)
 
             ZStack {
-                // 1. Static track ring
+                // Background Track
                 Circle()
-                    .stroke(Color(red: 138 / 255, green: 148 / 255, blue: 184 / 255).opacity(0.2), lineWidth: size * (6.0 / 240.0))
+                    .stroke(
+                        JaaymaStyle.ghost.opacity(0.35),
+                        style: StrokeStyle(lineWidth: size * (6.0 / 240.0), lineCap: .round)
+                    )
                     .frame(width: size * (208.0 / 240.0), height: size * (208.0 / 240.0))
 
-                // 2. Rotating Tricolor Ring
+                // Tricolor Rotating Segments: Sun, Hibiscus, Baobab
                 ZStack {
-                    // Sun arc (0 to 14%)
+                    // Segment 1: Sun
                     Circle()
                         .trim(from: 0.0, to: 0.14)
-                        .stroke(JaaymaStyle.sun, style: StrokeStyle(lineWidth: size * (8.0 / 240.0), lineCap: .round))
+                        .stroke(
+                            JaaymaStyle.sun,
+                            style: StrokeStyle(lineWidth: size * (8.0 / 240.0), lineCap: .round)
+                        )
 
-                    // Hibiscus arc (33.3% to 47.3%)
+                    // Segment 2: Hibiscus
                     Circle()
-                        .trim(from: 0.333, to: 0.333 + 0.14)
-                        .stroke(JaaymaStyle.hibiscus, style: StrokeStyle(lineWidth: size * (8.0 / 240.0), lineCap: .round))
+                        .trim(from: 0.333, to: 0.473)
+                        .stroke(
+                            JaaymaStyle.hibiscus,
+                            style: StrokeStyle(lineWidth: size * (8.0 / 240.0), lineCap: .round)
+                        )
 
-                    // Green arc (66.6% to 80.6%)
+                    // Segment 3: Baobab
                     Circle()
-                        .trim(from: 0.666, to: 0.666 + 0.14)
-                        .stroke(JaaymaStyle.baobab, style: StrokeStyle(lineWidth: size * (8.0 / 240.0), lineCap: .round))
+                        .trim(from: 0.666, to: 0.806)
+                        .stroke(
+                            JaaymaStyle.baobab,
+                            style: StrokeStyle(lineWidth: size * (8.0 / 240.0), lineCap: .round)
+                        )
                 }
                 .frame(width: size * (208.0 / 240.0), height: size * (208.0 / 240.0))
-                .rotationEffect(.degrees(spinAngle))
+                .rotationEffect(.degrees(ringAngle))
 
-                // 3. Center Breathing Badge with Tile + J + Dot
+                // Central Jaaymaa Branded Squircle Tile
                 ZStack {
-                    // Center tile
+                    // Tile Shape
                     JaaymaaTileShape()
                         .fill(JaaymaStyle.sun)
-                        .overlay(JaaymaaTileShape().stroke(JaaymaStyle.ink, lineWidth: size * (3.0 / 240.0)))
+                        .overlay(
+                            JaaymaaTileShape()
+                                .stroke(JaaymaStyle.ink, lineWidth: size * (3.0 / 240.0))
+                        )
                         .shadow(color: JaaymaStyle.ink, radius: 0, x: 2, y: 2)
 
-                    // Stroke drawing "J"
+                    // J Stem (Smoothly drawn)
                     JaaymaaJShape()
                         .trim(from: 0, to: jProgress)
                         .stroke(
@@ -232,8 +207,6 @@ struct JaaymaAnimatedBadge: View {
     }
 
     private func calculateBreathe(progress: Double) -> BreatheState {
-        // 0% -> 50%: scale 1.0 -> 1.05, rot 0 -> -3 deg
-        // 50% -> 100%: scale 1.05 -> 1.0, rot -3 -> 0 deg
         let sine = sin(progress * .pi * 2)
         let normalized = (sine + 1) / 2
         let scale = 1.0 + 0.05 * normalized
@@ -242,9 +215,6 @@ struct JaaymaAnimatedBadge: View {
     }
 
     private func calculateJDraw(progress: Double) -> CGFloat {
-        // 0% - 35%: 0 to 1
-        // 35% - 80%: 1.0
-        // 80% - 100%: 1 to 0 or hold
         if progress < 0.35 {
             return CGFloat(progress / 0.35)
         } else if progress < 0.85 {
@@ -262,15 +232,6 @@ struct JaaymaAnimatedBadge: View {
     }
 
     private func calculateDotDrop(progress: Double) -> DotAnimationState {
-        // 0% - 4%: drop from -44, opacity 0 -> 1
-        // 22%: landing at 0, opacity 1
-        // 25%: squish (1.3, 0.7)
-        // 31%: bounce up -12, scale (0.9, 1.1)
-        // 37%: land squish (1.15, 0.85)
-        // 42%: mini bounce -4
-        // 46% - 88%: settled at 0
-        // 96% - 100%: scale down 0, opacity 0
-
         if progress < 0.22 {
             let p = progress / 0.22
             return DotAnimationState(
@@ -325,3 +286,43 @@ struct JaaymaAnimatedBadge: View {
     }
 }
 
+// MARK: - Full Screen / Section Loader (jaayma-loader.svg)
+
+struct JaaymaScreenLoader: View {
+    var label: String = "Chargement en cours…"
+    var subtitle: String? = "Actualisation des données en direct"
+    var size: CGFloat = 120
+
+    var body: some View {
+        VStack(spacing: 20) {
+            JaaymaAnimatedBadge(size: size)
+
+            VStack(spacing: 8) {
+                HStack(spacing: 7) {
+                    JaaymaMiniLoader(encre: false, dotSize: 7, spacing: 5)
+                    Text("SYNCHRONISATION")
+                        .font(.system(size: 10, weight: .black))
+                        .tracking(1.8)
+                        .foregroundStyle(JaaymaStyle.darkHibiscus)
+                }
+
+                Text(label)
+                    .font(.system(size: 16, weight: .black, design: .rounded))
+                    .foregroundStyle(JaaymaStyle.ink)
+
+                if let subtitle {
+                    Text(subtitle)
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(JaaymaStyle.muted)
+                }
+            }
+            .padding(.horizontal, 22)
+            .padding(.vertical, 14)
+            .background(Color.white, in: RoundedRectangle(cornerRadius: 18))
+            .overlay(RoundedRectangle(cornerRadius: 18).stroke(JaaymaStyle.ink, lineWidth: 1.5))
+            .shadow(color: JaaymaStyle.ink, radius: 0, x: 2.5, y: 2.5)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding(.vertical, 40)
+    }
+}

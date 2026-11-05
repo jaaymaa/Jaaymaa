@@ -7,20 +7,17 @@ struct InfoCard: View {
 
     var body: some View {
         SectionCard(title: title) {
-            HStack(alignment: .top, spacing: 12) {
+            HStack(spacing: 10) {
                 Image(systemName: symbol)
-                    .font(.system(size: 20, weight: .bold))
-                    .foregroundStyle(JaaymaStyle.goldText)
-                    .frame(width: 40, height: 40)
-                    .background(JaaymaStyle.sun.opacity(0.3), in: RoundedRectangle(cornerRadius: 11))
-                    .overlay(RoundedRectangle(cornerRadius: 11).stroke(JaaymaStyle.ink, lineWidth: 1.5))
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundStyle(JaaymaStyle.sun)
+                    .frame(width: 32, height: 32)
+                    .background(JaaymaStyle.ink, in: RoundedRectangle(cornerRadius: 10))
 
                 Text(detail)
-                    .font(.system(size: 13, weight: .medium))
-                    .foregroundStyle(JaaymaStyle.muted)
-                    .lineSpacing(3)
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundStyle(JaaymaStyle.ink)
             }
-            .padding(.vertical, 4)
         }
     }
 }

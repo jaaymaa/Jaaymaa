@@ -1,7 +1,7 @@
 import Foundation
 
 enum AdminSection: String, CaseIterable, Identifiable, Hashable {
-    case overview, shops, accounts, orders, subscriptions, analytics, notifications, settings
+    case overview, shops, orders, accounts, subscriptions, analytics, notifications, settings
 
     var id: String { rawValue }
     var endpoint: String { rawValue }
@@ -10,8 +10,8 @@ enum AdminSection: String, CaseIterable, Identifiable, Hashable {
         switch self {
         case .overview: return "Vue d’ensemble"
         case .shops: return "Boutiques"
-        case .accounts: return "Comptes vendeurs"
         case .orders: return "Commandes"
+        case .accounts: return "Comptes vendeurs"
         case .subscriptions: return "Abonnements Pro"
         case .analytics: return "Google Analytics"
         case .notifications: return "Notifications push"
@@ -23,8 +23,8 @@ enum AdminSection: String, CaseIterable, Identifiable, Hashable {
         switch self {
         case .overview: return "Aperçu"
         case .shops: return "Boutiques"
-        case .accounts: return "Comptes"
         case .orders: return "Commandes"
+        case .accounts: return "Comptes"
         case .subscriptions: return "Abonnements"
         case .analytics: return "Analytics"
         case .notifications: return "Alertes"
@@ -35,9 +35,9 @@ enum AdminSection: String, CaseIterable, Identifiable, Hashable {
     var eyebrow: String {
         switch self {
         case .overview: return "Centre de pilotage"
-        case .shops: return "Gestion du catalogue de vendeurs"
-        case .accounts: return "Commerçants Jaaymaa"
+        case .shops: return "Catalogue des boutiques"
         case .orders: return "Suivi des ventes"
+        case .accounts: return "Commerçants Jaaymaa"
         case .subscriptions: return "Offre commerciale"
         case .analytics: return "Performances & audience"
         case .notifications: return "Communication vendeurs"
@@ -48,21 +48,21 @@ enum AdminSection: String, CaseIterable, Identifiable, Hashable {
     var description: String {
         switch self {
         case .overview:
-            return "Les indicateurs clés et les dernières activités de la plateforme Jaaymaa."
+            return "Indicateurs clés en direct et dernières activités de la plateforme."
         case .shops:
-            return "Retrouvez toutes les boutiques, y compris les brouillons et les boutiques suspendues."
-        case .accounts:
-            return "Recherchez les comptes vendeurs, vérifiez leur activité et accédez rapidement à leur boutique."
+            return "Toutes les boutiques Jaaymaa, actives, en attente ou suspendues."
         case .orders:
-            return "Consultez les commandes de toutes les boutiques et repérez rapidement les paiements."
+            return "Commandes passées sur les boutiques, statuts de paiement et livraisons."
+        case .accounts:
+            return "Gestion des comptes commerçants et accès direct à leurs boutiques."
         case .subscriptions:
-            return "Consultez les formules actives et expirées, changez le plan d’une boutique ou ajustez les tarifs."
+            return "Formules Pro et Pro+, statuts de validité et gestion des abonnements."
         case .analytics:
-            return "Audience, visiteurs et statistiques de consultation de la plateforme."
+            return "Visiteurs en temps réel, pages populaires et conversion."
         case .notifications:
-            return "Préparez une annonce et envoyez-la aux vendeurs qui ont activé les notifications."
+            return "Diffusions d'annonces instantanées aux commerçants inscrits."
         case .settings:
-            return "Vérifiez l’état des services essentiels (base D1, push, prix Pro) et configurez Jaaymaa."
+            return "Santé de l'infrastructure Cloudflare D1, FCM et tarification."
         }
     }
 
@@ -70,8 +70,8 @@ enum AdminSection: String, CaseIterable, Identifiable, Hashable {
         switch self {
         case .overview: return "square.grid.2x2.fill"
         case .shops: return "storefront.fill"
-        case .accounts: return "person.2.fill"
         case .orders: return "bag.fill"
+        case .accounts: return "person.2.fill"
         case .subscriptions: return "creditcard.fill"
         case .analytics: return "chart.bar.fill"
         case .notifications: return "bell.fill"
@@ -83,10 +83,9 @@ enum AdminSection: String, CaseIterable, Identifiable, Hashable {
         [.shops, .subscriptions, .accounts, .orders].contains(self)
     }
 
-    // Top 4 mobile primary tabs matching web:
-    // Aperçu, Boutiques, Comptes, Commandes + Plus
-    static let primaryMobileSections: [AdminSection] = [.overview, .shops, .accounts, .orders]
+    // 4 primary tabs on mobile floating bar (+ Plus = 5 balanced slots)
+    static let primaryMobileSections: [AdminSection] = [.overview, .shops, .orders, .accounts]
 
-    // Sections inside the "Plus" sheet:
-    static let moreSections: [AdminSection] = [.analytics, .subscriptions, .notifications, .settings]
+    // 4 sections in the "Plus" sheet
+    static let moreSections: [AdminSection] = [.subscriptions, .analytics, .notifications, .settings]
 }

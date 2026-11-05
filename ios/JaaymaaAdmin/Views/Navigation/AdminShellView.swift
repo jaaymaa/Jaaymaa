@@ -17,11 +17,11 @@ struct AdminShellView: View {
         }
     }
 
-    // MARK: - iPhone Layout with Custom Symmetrical Floating Pill Navigation
+    // MARK: - iPhone Layout with 100% Symmetrical Floating Dock
 
     private var iphoneLayout: some View {
         ZStack(alignment: .bottom) {
-            // Main content area
+            // Main Content Container
             VStack(spacing: 0) {
                 topNavigationBar
 
@@ -31,10 +31,8 @@ struct AdminShellView: View {
             }
             .background(JaaymaStyle.paper.ignoresSafeArea())
 
-            // Symmetrical Floating Bottom Navigation Bar (reproducing web mobile nav)
-            floatingBottomNav
-                .padding(.horizontal, 16)
-                .padding(.bottom, 10)
+            // Mathematically Symmetrical 5-Slot Floating Dock
+            symmetricalFloatingBottomBar
         }
         .ignoresSafeArea(.keyboard, edges: .bottom)
         .sheet(isPresented: $showMoreSheet) {
@@ -44,12 +42,14 @@ struct AdminShellView: View {
         }
     }
 
-    // MARK: - Top Brand Navigation Bar
+    // MARK: - Top Symmetrical Brand Header
 
     private var topNavigationBar: some View {
         HStack(spacing: 12) {
+            // Left: Brand Mark + Name + Admin Badge
             HStack(spacing: 8) {
                 BrandMark(size: 32, brutalist: true)
+
                 Text("Jaaymaa")
                     .font(.system(size: 19, weight: .black, design: .rounded))
                     .foregroundStyle(.white)
@@ -64,149 +64,192 @@ struct AdminShellView: View {
                     .overlay(RoundedRectangle(cornerRadius: 6).stroke(JaaymaStyle.sun.opacity(0.4), lineWidth: 1))
             }
 
-            Spacer()
+            Spacer(minLength: 8)
 
-            if let phone = session.userPhone {
-                HStack(spacing: 5) {
-                    Circle()
-                        .fill(JaaymaStyle.baobab)
-                        .frame(width: 7, height: 7)
-                    Text(phone)
-                        .font(.system(size: 11, weight: .bold, design: .monospaced))
-                        .foregroundStyle(JaaymaStyle.ghost)
+            // Right: Admin Phone Pill + Quick Signout
+            HStack(spacing: 8) {
+                if let phone = session.userPhone {
+                    HStack(spacing: 5) {
+                        Circle()
+                            .fill(JaaymaStyle.baobab)
+                            .frame(width: 7, height: 7)
+                        Text(phone)
+                            .font(.system(size: 11, weight: .bold, design: .monospaced))
+                            .foregroundStyle(JaaymaStyle.ghost)
+                    }
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 5)
+                    .background(Color.white.opacity(0.08), in: Capsule())
+                    .overlay(Capsule().stroke(Color.white.opacity(0.15), lineWidth: 1))
                 }
-                .padding(.horizontal, 9)
-                .padding(.vertical, 5)
-                .background(Color.white.opacity(0.08), in: Capsule())
-                .overlay(Capsule().stroke(Color.white.opacity(0.15), lineWidth: 1))
-            }
 
-            Button {
-                Task { await session.signOut() }
-            } label: {
-                Image(systemName: "rectangle.portrait.and.arrow.right")
-                    .font(.system(size: 13, weight: .bold))
-                    .foregroundStyle(JaaymaStyle.ghost)
-                    .padding(8)
-                    .background(Color.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 10))
+                Button {
+                    JaaymaHaptics.light()
+                    Task { await session.signOut() }
+                } label: {
+                    Image(systemName: "rectangle.portrait.and.arrow.right")
+                        .font(.system(size: 13, weight: .bold))
+                        .foregroundStyle(JaaymaStyle.ghost)
+                        .padding(7)
+                        .background(Color.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 8))
+                }
+                .accessibilityLabel("Se déconnecter")
             }
-            .accessibilityLabel("Se déconnecter")
         }
         .padding(.horizontal, 16)
-        .padding(.vertical, 11)
+        .padding(.vertical, 10)
         .background(JaaymaStyle.nuit)
+        .overlay(
+            Rectangle()
+                .frame(height: 1)
+                .foregroundStyle(Color.white.opacity(0.08)),
+            alignment: .bottom
+        )
     }
 
-    // MARK: - Floating Symmetrical Bottom Bar
+    // MARK: - Perfectly Symmetrical 5-Slot Floating Dock
 
     private var isMoreActive: Bool {
         AdminSection.moreSections.contains(activeSection)
     }
 
-    private var floatingBottomNav: some View {
-        HStack(spacing: 4) {
-            // 1. Aperçu
-            navItem(for: .overview, label: "Aperçu", symbol: AdminSection.overview.symbol)
-
-            // 2. Boutiques
-            navItem(for: .shops, label: "Boutiques", symbol: AdminSection.shops.symbol)
-
-            // 3. Comptes
-            navItem(for: .accounts, label: "Comptes", symbol: AdminSection.accounts.symbol)
-
-            // 4. Commandes
-            navItem(for: .orders, label: "Commandes", symbol: AdminSection.orders.symbol)
-
-            // 5. Plus (Sheet trigger)
-            Button {
-                showMoreSheet = true
-            } label: {
-                HStack(spacing: 5) {
-                    Image(systemName: "ellipsis")
-                        .font(.system(size: 16, weight: .heavy))
-                    if isMoreActive {
-                        Text(activeSection.shortTitle)
-                            .font(.system(size: 10, weight: .black, design: .rounded))
-                            .lineLimit(1)
-                    }
-                }
-                .foregroundStyle(JaaymaStyle.ink)
-                .padding(.horizontal, isMoreActive ? 10 : 8)
-                .padding(.vertical, 8)
-                .frame(maxWidth: .infinity)
-                .frame(height: 40)
-                .background(
-                    Group {
-                        if isMoreActive {
-                            Capsule().fill(JaaymaStyle.sun)
-                        } else {
-                            Color.clear
-                        }
-                    }
-                )
-                .overlay(
-                    Group {
-                        if isMoreActive {
-                            Capsule().stroke(JaaymaStyle.ink, lineWidth: 2)
-                        }
-                    }
-                )
-                .shadow(color: isMoreActive ? JaaymaStyle.ink : .clear, radius: 0, x: 1.5, y: 1.5)
+    private var symmetricalFloatingBottomBar: some View {
+        HStack(spacing: 0) {
+            // Slot 1: Aperçu
+            navSlot(
+                section: .overview,
+                label: "Aperçu",
+                symbol: "square.grid.2x2.fill",
+                isSelected: activeSection == .overview
+            ) {
+                switchSection(to: .overview)
             }
-            .buttonStyle(.plain)
+
+            // Slot 2: Boutiques
+            navSlot(
+                section: .shops,
+                label: "Boutiques",
+                symbol: "storefront.fill",
+                isSelected: activeSection == .shops
+            ) {
+                switchSection(to: .shops)
+            }
+
+            // Slot 3: Commandes (EXACT MATHEMATICAL CENTER)
+            navSlot(
+                section: .orders,
+                label: "Commandes",
+                symbol: "bag.fill",
+                isSelected: activeSection == .orders
+            ) {
+                switchSection(to: .orders)
+            }
+
+            // Slot 4: Comptes
+            navSlot(
+                section: .accounts,
+                label: "Comptes",
+                symbol: "person.2.fill",
+                isSelected: activeSection == .accounts
+            ) {
+                switchSection(to: .accounts)
+            }
+
+            // Slot 5: Plus (Triggers sheet for Subscriptions, Analytics, Notifications, Settings)
+            moreNavSlot
         }
-        .padding(5)
-        .background(JaaymaStyle.paper, in: Capsule())
-        .overlay(Capsule().stroke(JaaymaStyle.ink, lineWidth: 2.5))
-        .shadow(color: JaaymaStyle.ink, radius: 0, x: 3.5, y: 3.5)
-        .frame(maxWidth: 480)
+        .padding(.horizontal, 4)
+        .padding(.vertical, 6)
+        .background(Color.white, in: RoundedRectangle(cornerRadius: 22))
+        .overlay(
+            RoundedRectangle(cornerRadius: 22)
+                .stroke(JaaymaStyle.ink, lineWidth: 2)
+        )
+        .shadow(color: JaaymaStyle.ink.opacity(0.18), radius: 0, x: 0, y: 3)
+        .shadow(color: JaaymaStyle.ink.opacity(0.08), radius: 10, y: 5)
+        .padding(.horizontal, 16)
+        .padding(.bottom, 6)
     }
 
-    private func navItem(for section: AdminSection, label: String, symbol: String) -> some View {
-        let isSelected = activeSection == section
+    // Single fixed-width symmetrical navigation slot
+    private func navSlot(
+        section: AdminSection,
+        label: String,
+        symbol: String,
+        isSelected: Bool,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            VStack(spacing: 3) {
+                ZStack {
+                    if isSelected {
+                        RoundedRectangle(cornerRadius: 9)
+                            .fill(JaaymaStyle.sun)
+                            .overlay(RoundedRectangle(cornerRadius: 9).stroke(JaaymaStyle.ink, lineWidth: 1.2))
+                            .shadow(color: JaaymaStyle.ink, radius: 0, x: 1, y: 1)
+                            .frame(width: 38, height: 26)
+                    }
 
-        return Button {
-            withAnimation(.spring(response: 0.25, dampingFraction: 0.8)) {
-                activeSection = section
-            }
-        } label: {
-            HStack(spacing: 5) {
-                Image(systemName: symbol)
-                    .font(.system(size: isSelected ? 14 : 16, weight: .bold))
-
-                if isSelected {
-                    Text(label)
-                        .font(.system(size: 10, weight: .black, design: .rounded))
-                        .lineLimit(1)
+                    Image(systemName: symbol)
+                        .font(.system(size: 15, weight: isSelected ? .black : .bold))
+                        .foregroundStyle(isSelected ? JaaymaStyle.ink : JaaymaStyle.muted)
                 }
+                .frame(width: 38, height: 26)
+
+                Text(label)
+                    .font(.system(size: 10, weight: isSelected ? .black : .bold, design: .rounded))
+                    .foregroundStyle(isSelected ? JaaymaStyle.ink : JaaymaStyle.muted)
+                    .lineLimit(1)
             }
-            .foregroundStyle(isSelected ? JaaymaStyle.ink : JaaymaStyle.muted)
-            .padding(.horizontal, isSelected ? 10 : 8)
-            .padding(.vertical, 8)
             .frame(maxWidth: .infinity)
-            .frame(height: 40)
-            .background(
-                Group {
-                    if isSelected {
-                        Capsule().fill(JaaymaStyle.sun)
-                    } else {
-                        Color.clear
-                    }
-                }
-            )
-            .overlay(
-                Group {
-                    if isSelected {
-                        Capsule().stroke(JaaymaStyle.ink, lineWidth: 2)
-                    }
-                }
-            )
-            .shadow(color: isSelected ? JaaymaStyle.ink : .clear, radius: 0, x: 1.5, y: 1.5)
+            .frame(height: 48)
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
     }
 
-    // MARK: - iPad Split View Layout
+    // 5th Slot: Plus button
+    private var moreNavSlot: some View {
+        Button {
+            JaaymaHaptics.light()
+            showMoreSheet = true
+        } label: {
+            VStack(spacing: 3) {
+                ZStack {
+                    if isMoreActive {
+                        RoundedRectangle(cornerRadius: 9)
+                            .fill(JaaymaStyle.sun)
+                            .overlay(RoundedRectangle(cornerRadius: 9).stroke(JaaymaStyle.ink, lineWidth: 1.2))
+                            .shadow(color: JaaymaStyle.ink, radius: 0, x: 1, y: 1)
+                            .frame(width: 38, height: 26)
+                    }
+
+                    Image(systemName: isMoreActive ? activeSection.symbol : "ellipsis")
+                        .font(.system(size: 15, weight: isMoreActive ? .black : .bold))
+                        .foregroundStyle(isMoreActive ? JaaymaStyle.ink : JaaymaStyle.muted)
+                }
+                .frame(width: 38, height: 26)
+
+                Text(isMoreActive ? activeSection.shortTitle : "Plus")
+                    .font(.system(size: 10, weight: isMoreActive ? .black : .bold, design: .rounded))
+                    .foregroundStyle(isMoreActive ? JaaymaStyle.ink : JaaymaStyle.muted)
+                    .lineLimit(1)
+            }
+            .frame(maxWidth: .infinity)
+            .frame(height: 48)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func switchSection(to section: AdminSection) {
+        JaaymaHaptics.selection()
+        withAnimation(.spring(response: 0.25, dampingFraction: 0.8)) {
+            activeSection = section
+        }
+    }
+
+    // MARK: - iPad Layout
 
     private var ipadLayout: some View {
         NavigationSplitView {

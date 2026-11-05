@@ -20,6 +20,11 @@ struct AdminPage<T: Decodable>: Decodable {
     let totalPages: Int
 }
 
+struct PageInfo: Hashable {
+    let current: Int
+    let total: Int
+}
+
 // MARK: - Overview
 struct AdminOverview: Decodable {
     let metrics: AdminMetrics
@@ -30,7 +35,7 @@ struct AdminMetrics: Decodable {
     let totalShops: Int
     let activeShops: Int
     let suspendedShops: Int
-    let draftShops: Int
+    let draftShops: Int?
     let sellers: Int
     let activeProducts: Int
     let totalOrders: Int
@@ -169,12 +174,6 @@ struct AnalyticsPage: Decodable, Identifiable {
     var id: String { path }
 }
 
-// MARK: - Page Info
-struct PageInfo {
-    let current: Int
-    let total: Int
-}
-
 // MARK: - Notifications
 struct AdminBroadcast: Decodable, Identifiable {
     let id: String
@@ -228,4 +227,3 @@ enum AdminSectionData {
         }
     }
 }
-
