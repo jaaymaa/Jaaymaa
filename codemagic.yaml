@@ -1,33 +1,4 @@
 workflows:
-  ios-admin-simulator:
-    name: Jaaymaa Admin · iOS Simulator
-    max_build_duration: 60
-    instance_type: mac_mini_m2
-    environment:
-      xcode: "27.1"
-    scripts:
-      - name: Generate the Xcode project
-        script: |
-          if ! command -v xcodegen >/dev/null 2>&1; then
-            brew install xcodegen
-          fi
-          cd "$CM_BUILD_DIR/ios"
-          xcodegen generate --spec project.yml
-      - name: Build the unsigned simulator app
-        script: |
-          xcodebuild \
-            -project "$CM_BUILD_DIR/ios/JaaymaaAdmin.xcodeproj" \
-            -scheme JaaymaaAdmin \
-            -sdk iphonesimulator \
-            -configuration Debug \
-            -destination 'generic/platform=iOS Simulator' \
-            -derivedDataPath "$CM_BUILD_DIR/build/ios" \
-            CODE_SIGNING_ALLOWED=NO \
-            build
-    artifacts:
-      - build/ios/Build/Products/Debug-iphonesimulator/JaaymaaAdmin.app
-      - /tmp/xcodebuild_logs/*.log
-
   ios-admin-sideload:
     name: Jaaymaa Admin · IPA pour Sideloadly
     max_build_duration: 60
@@ -65,5 +36,35 @@ workflows:
           ditto -c -k --sequesterRsrc --keepParent Payload "$CM_BUILD_DIR/build/JaaymaaAdmin-sideload.ipa"
           unzip -Z1 "$CM_BUILD_DIR/build/JaaymaaAdmin-sideload.ipa" | grep -q '^Payload/JaaymaaAdmin.app/Info.plist$'
     artifacts:
+      - build/*.ipa
       - build/JaaymaaAdmin-sideload.ipa
+      - /tmp/xcodebuild_logs/*.log
+
+  ios-admin-simulator:
+    name: Jaaymaa Admin · iOS Simulator
+    max_build_duration: 60
+    instance_type: mac_mini_m2
+    environment:
+      xcode: "27.1"
+    scripts:
+      - name: Generate the Xcode project
+        script: |
+          if ! command -v xcodegen >/dev/null 2>&1; then
+            brew install xcodegen
+          fi
+          cd "$CM_BUILD_DIR/ios"
+          xcodegen generate --spec project.yml
+      - name: Build the unsigned simulator app
+        script: |
+          xcodebuild \
+            -project "$CM_BUILD_DIR/ios/JaaymaaAdmin.xcodeproj" \
+            -scheme JaaymaaAdmin \
+            -sdk iphonesimulator \
+            -configuration Debug \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath "$CM_BUILD_DIR/build/ios" \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+    artifacts:
+      - build/ios/Build/Products/Debug-iphonesimulator/JaaymaaAdmin.app
       - /tmp/xcodebuild_logs/*.log
