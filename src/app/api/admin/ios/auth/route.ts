@@ -43,10 +43,12 @@ export async function POST(request: Request) {
       admin: { phone: result.user.phone, name: result.user.name || "Administrateur" },
     });
   } catch (error) {
+    console.error("Admin iOS login error:", error);
     if (error instanceof Error && error.message === "Identifiants incorrects.") {
       return nativeAdminJson({ error: "Identifiants incorrects." }, 401);
     }
-    return nativeAdminJson({ error: "Connexion indisponible. Réessaie dans un instant." }, 503);
+    const message = error instanceof Error ? error.message : "Erreur serveur";
+    return nativeAdminJson({ error: `Connexion indisponible (${message}). Réessaie.` }, 503);
   }
 }
 

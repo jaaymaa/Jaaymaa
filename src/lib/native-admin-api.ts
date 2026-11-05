@@ -22,46 +22,53 @@ export function nativeAdminJson(data: unknown, status = 200) {
 
 /** Store only a hash of the client IP and cap password attempts over a rolling window. */
 export async function allowNativeAdminLogin(request: Request): Promise<boolean> {
-  const ip = request.headers.get("cf-connecting-ip") || request.headers.get("x-real-ip") || "unknown";
-  const id = createHash("sha256").update(ip).digest("hex");
-  const db = await getDb();
-  const now = new Date();
-  const cutoff = new Date(now.getTime() - LOGIN_WINDOW_MS);
-  const current = await db
-    .select({ attempts: adminMobileLoginAttempts.attempts, windowStartedAt: adminMobileLoginAttempts.windowStartedAt })
-    .from(adminMobileLoginAttempts)
-    .where(eq(adminMobileLoginAttempts.id, id))
-    .get();
+  try {
+    const ip = request.headers.get("cf-connecting-ip") || request.headers.get("x-real-ip") || "unknown";
+    const id = createHash("sha256").update(ip).digest("hex");
+    const db = await getDb();
+    const now = new Date();
+    const cutoff = new Date(now.getTime() - LOGIN_WINDOW_MS);
 
-  if (current && current.windowStartedAt > cutoff && current.attempts >= LOGIN_ATTEMPT_LIMIT) {
-    return false;
+    const current = await db
+      .select({ attempts: adminMobileLoginAttempts.attempts, windowStartedAt: adminMobileLoginAttempts.windowStartedAt })
+      .from(adminMobileLoginAttempts)
+      .where(eq(adminMobileLoginAttempts.id, id))
+      .get();
+
+    if (current && current.windowStartedAt > cutoff) {
+      if (current.attempts >= LOGIN_ATTEMPT_LIMIT) {
+        return false;
+      }
+      await db
+        .update(adminMobileLoginAttempts)
+        .set({ attempts: current.attempts + 1 })
+        .where(eq(adminMobileLoginAttempts.id, id));
+    } else {
+      await db
+        .insert(adminMobileLoginAttempts)
+        .values({ id, windowStartedAt: now, attempts: 1 })
+        .onConflictDoUpdate({
+          target: adminMobileLoginAttempts.id,
+          set: { attempts: 1, windowStartedAt: now },
+        });
+    }
+
+    // Prune expired IP hashes occasionally so this table stays small.
+    if (Math.random() < 0.02) {
+      try {
+        await db
+          .delete(adminMobileLoginAttempts)
+          .where(lt(adminMobileLoginAttempts.windowStartedAt, new Date(now.getTime() - 24 * 60 * 60 * 1000)));
+      } catch {
+        // Ignored
+      }
+    }
+
+    return true;
+  } catch (error) {
+    console.error("Rate-limit check skipped on error:", error);
+    return true; // Fail-open: do not block legitimate admin login if rate limiter encounters an error
   }
-
-  await db
-    .insert(adminMobileLoginAttempts)
-    .values({ id, windowStartedAt: now, attempts: 1 })
-    .onConflictDoUpdate({
-      target: adminMobileLoginAttempts.id,
-      set: {
-        attempts: sql`CASE WHEN ${adminMobileLoginAttempts.windowStartedAt} <= ${cutoff} THEN 1 ELSE ${adminMobileLoginAttempts.attempts} + 1 END`,
-        windowStartedAt: sql`CASE WHEN ${adminMobileLoginAttempts.windowStartedAt} <= ${cutoff} THEN ${now} ELSE ${adminMobileLoginAttempts.windowStartedAt} END`,
-      },
-    });
-
-  const updated = await db
-    .select({ attempts: adminMobileLoginAttempts.attempts })
-    .from(adminMobileLoginAttempts)
-    .where(eq(adminMobileLoginAttempts.id, id))
-    .get();
-
-  // Prune expired IP hashes occasionally so this table stays small.
-  if (Math.random() < 0.02) {
-    await db
-      .delete(adminMobileLoginAttempts)
-      .where(lt(adminMobileLoginAttempts.windowStartedAt, new Date(now.getTime() - 24 * 60 * 60 * 1000)));
-  }
-
-  return (updated?.attempts ?? LOGIN_ATTEMPT_LIMIT + 1) <= LOGIN_ATTEMPT_LIMIT;
 }
 
 export async function requireNativeAdmin(request: Request): Promise<
