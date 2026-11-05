@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="520" viewBox="0 0 1440 520" role="img" aria-labelledby="title description">
+  <title id="title">Jaaymaa — ta boutique, en un lien</title>
+  <desc id="description">Une plateforme sénégalaise pour présenter ses produits et gérer ses commandes.</desc>
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0B1730"/>
+      <stop offset="1" stop-color="#152B52"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0" cy="0" r="1" gradientTransform="translate(1190 260) rotate(90) scale(300 340)" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFC83D" stop-opacity=".2"/>
+      <stop offset="1" stop-color="#FFC83D" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="wax" width="92" height="92" patternUnits="userSpaceOnUse">
+      <path d="M46 2 90 46 46 90 2 46Z" fill="none" stroke="#EEF2FF" stroke-opacity=".055" stroke-width="1.5"/>
+      <path d="M46 20 72 46 46 72 20 46Z" fill="none" stroke="#FFC83D" stroke-opacity=".12" stroke-width="1.5"/>
+      <circle cx="46" cy="46" r="3" fill="#C8265A" fill-opacity=".55"/>
+    </pattern>
+  </defs>
+  <rect width="1440" height="520" rx="34" fill="url(#background)"/>
+  <rect width="1440" height="520" rx="34" fill="url(#wax)"/>
+  <rect width="1440" height="520" rx="34" fill="url(#glow)"/>
+  <circle cx="1340" cy="40" r="190" fill="#1D3A68" fill-opacity=".44"/>
+  <circle cx="1340" cy="40" r="132" fill="none" stroke="#FFC83D" stroke-opacity=".18" stroke-width="2"/>
+  <circle cx="1340" cy="40" r="94" fill="none" stroke="#EEF2FF" stroke-opacity=".12" stroke-width="2"/>
+
+  <g transform="translate(104 104) scale(.86)">
+    <path d="M38 4H82A34 34 0 0 1 116 38V82A34 34 0 0 1 82 116H10A6 6 0 0 1 4 110V38A34 34 0 0 1 38 4Z" fill="#FFC83D"/>
+    <path d="M64 46V76C64 90 57 97 44 97" fill="none" stroke="#0F1E3D" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="64" cy="28" r="7.5" fill="#C8265A"/>
+  </g>
+  <text x="224" y="190" fill="#F8F6F0" font-family="Inter, Arial, sans-serif" font-size="68" font-weight="700" letter-spacing="1">Jaaymaa</text>
+  <text x="108" y="290" fill="#FFC83D" font-family="Inter, Arial, sans-serif" font-size="17" font-weight="700" letter-spacing="3">LE COMMERCE LOCAL, SIMPLEMENT</text>
+  <text x="108" y="350" fill="#F8F6F0" font-family="Inter, Arial, sans-serif" font-size="34" font-weight="600">Ta boutique, en un lien.</text>
+  <text x="108" y="394" fill="#D7DFEF" font-family="Inter, Arial, sans-serif" font-size="19">Présente tes produits, reçois tes commandes et</text>
+  <text x="108" y="423" fill="#D7DFEF" font-family="Inter, Arial, sans-serif" font-size="19">gère ton activité depuis un seul espace.</text>
+  <g transform="translate(108 454)">
+    <circle cx="7" cy="7" r="6" fill="#FFC83D"/>
+    <text x="24" y="12" fill="#C9D3E5" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="600" letter-spacing="1.5">SÉNÉGAL  ·  BOUTIQUES  ·  MOBILE</text>
+  </g>
+
+  <g>
+    <rect x="842" y="72" width="500" height="376" rx="30" fill="#F8F6F0" fill-opacity=".08" stroke="#F8F6F0" stroke-opacity=".17" stroke-width="1.5"/>
+    <rect x="874" y="101" width="436" height="316" rx="23" fill="#F8F6F0"/>
+    <circle cx="901" cy="127" r="5" fill="#C8265A"/>
+    <circle cx="918" cy="127" r="5" fill="#FFC83D"/>
+    <circle cx="935" cy="127" r="5" fill="#3B9A70"/>
+    <text x="1086" y="133" text-anchor="middle" fill="#6E7890" font-family="Inter, Arial, sans-serif" font-size="12" font-weight="600" letter-spacing="1">MA BOUTIQUE</text>
+    <rect x="898" y="153" width="388" height="62" rx="15" fill="#0F1E3D"/>
+    <rect x="914" y="166" width="36" height="36" rx="11" fill="#FFC83D"/>
+    <path d="M933 176V188C933 193 930 195 925 195" fill="none" stroke="#0F1E3D" stroke-width="3.5" stroke-linecap="round"/>
+    <circle cx="933" cy="171" r="2.3" fill="#C8265A"/>
+    <text x="964" y="181" fill="#F8F6F0" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="700">Awa Couture</text>
+    <text x="964" y="199" fill="#B8C4D9" font-family="Inter, Arial, sans-serif" font-size="11">Collection du jour</text>
+    <rect x="1203" y="174" width="65" height="23" rx="11.5" fill="#FFC83D"/>
+    <text x="1235" y="189" text-anchor="middle" fill="#0F1E3D" font-family="Inter, Arial, sans-serif" font-size="9" font-weight="700" letter-spacing=".5">EN LIGNE</text>
+
+    <rect x="898" y="231" width="184" height="127" rx="16" fill="#F2E4D2"/>
+    <path d="M919 281 990 248 1061 281V344H919Z" fill="#D8B89A" fill-opacity=".72"/>
+    <path d="M919 281H1061V299H919Z" fill="#C8265A"/>
+    <path d="M919 281H947L935 299H919ZM975 281H1003L991 299H963ZM1031 281H1059L1047 299H1019Z" fill="#F8F6F0"/>
+    <path d="M943 306H1037V344H943Z" fill="#FFFDF8"/>
+    <path d="M978 315H1002V344H978Z" fill="#0F1E3D"/>
+    <path d="M951 313H969V326H951ZM1010 313H1029V326H1010Z" fill="#FFC83D"/>
+    <circle cx="1040" cy="247" r="14" fill="#FFC83D" fill-opacity=".9"/>
+
+    <rect x="1098" y="231" width="188" height="127" rx="16" fill="#E8EDF5"/>
+    <rect x="1114" y="247" width="72" height="94" rx="12" fill="#D8E5DA"/>
+    <path d="M1130 273C1130 264 1137 258 1149 258C1161 258 1168 264 1168 273V328H1130Z" fill="#3B9A70"/>
+    <path d="M1139 273C1139 267 1143 264 1149 264C1155 264 1159 267 1159 273" fill="none" stroke="#F8F6F0" stroke-width="3" stroke-linecap="round"/>
+    <rect x="1198" y="253" width="70" height="8" rx="4" fill="#0F1E3D" fill-opacity=".75"/>
+    <rect x="1198" y="270" width="54" height="7" rx="3.5" fill="#74809A" fill-opacity=".55"/>
+    <rect x="1198" y="294" width="60" height="20" rx="10" fill="#FFC83D"/>
+    <text x="1228" y="308" text-anchor="middle" fill="#0F1E3D" font-family="Inter, Arial, sans-serif" font-size="9" font-weight="700">VOIR LE PRODUIT</text>
+    <text x="1114" y="379" fill="#0F1E3D" font-family="Inter, Arial, sans-serif" font-size="12" font-weight="700">Une vitrine claire, prête à partager.</text>
+  </g>
+</svg>
