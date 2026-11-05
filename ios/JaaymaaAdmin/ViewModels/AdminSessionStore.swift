@@ -6,6 +6,7 @@ final class AdminSessionStore: ObservableObject {
     @Published private(set) var token: String? = SecureTokenStore.read()
     @Published private(set) var phone: String?
 
+    var userPhone: String? { phone }
     var isSignedIn: Bool { token != nil }
 
     func signIn(phone: String, password: String) async throws {

@@ -12,82 +12,61 @@ struct AdminSectionView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
-                header
+                // Neo-Brutalist Page Title Header
+                AdminPageHeader(
+                    eyebrow: section.eyebrow,
+                    title: section.title,
+                    description: section.description,
+                    badgeText: badgeTextForSection,
+                    badgeIcon: section == .overview ? "waveform.path.ecg" : section.symbol
+                )
 
+                // Search Bar for Searchable Sections
                 if section.isSearchable {
-                    HStack(spacing: 9) {
-                        Image(systemName: "magnifyingglass")
-                            .foregroundStyle(JaaymaStyle.muted)
-                        TextField("Rechercher…", text: $query)
-                            .textInputAutocapitalization(.never)
-                            .autocorrectionDisabled()
-                            .onSubmit {
-                                page = 1
-                                Task { await load() }
-                            }
-                        Button("Filtrer") {
-                            page = 1
-                            Task { await load() }
-                        }
-                        .font(.caption.weight(.bold))
-                        .foregroundStyle(JaaymaStyle.ink)
-                    }
-                    .padding(13)
-                    .background(.white.opacity(0.75), in: RoundedRectangle(cornerRadius: 15))
+                    searchBar
                 }
 
+                // Main Content / Loaders / Errors
                 if loading && data == nil {
-                    ProgressView("Chargement…")
-                        .frame(maxWidth: .infinity)
-                        .padding(40)
-                } else if let errorMessage {
-                    ContentUnavailableView(
-                        "Chargement impossible",
-                        systemImage: "wifi.exclamationmark",
-                        description: Text(errorMessage)
+                    JaaymaScreenLoader(
+                        label: "Chargement de \(section.shortTitle)…",
+                        subtitle: "Synchronisation en direct avec le Worker"
                     )
-                    Button("Réessayer") {
-                        Task { await load() }
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .tint(JaaymaStyle.ink)
+                    .frame(minHeight: 340)
+                } else if let errorMessage {
+                    errorCard(errorMessage)
                 } else if let data {
                     content(data)
+
                     if let pageInfo = data.pageInfo {
-                        HStack {
-                            Button("Précédent") {
-                                page = max(1, page - 1)
-                                Task { await load() }
-                            }
-                            .disabled(pageInfo.current <= 1)
-
-                            Spacer()
-
-                            Text("Page \(pageInfo.current) sur \(pageInfo.total)")
-                                .font(.caption.weight(.semibold))
-                                .foregroundStyle(JaaymaStyle.muted)
-
-                            Spacer()
-
-                            Button("Suivante") {
-                                page = min(pageInfo.total, page + 1)
-                                Task { await load() }
-                            }
-                            .disabled(pageInfo.current >= pageInfo.total)
-                        }
-                        .buttonStyle(.bordered)
-                        .tint(JaaymaStyle.ink)
+                        paginationBar(pageInfo)
                     }
                 }
             }
-            .padding(.horizontal, 20)
-            .padding(.vertical, 18)
+            .padding(.horizontal, 16)
+            .padding(.top, 16)
+            .padding(.bottom, 95) // Clear room for the floating bottom pill bar
             .frame(maxWidth: 1100, alignment: .leading)
             .frame(maxWidth: .infinity)
         }
         .background(JaaymaStyle.paper.ignoresSafeArea())
-        .navigationTitle(section.title)
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    Task { await load() }
+                } label: {
+                    if loading {
+                        JaaymaMiniLoader(encre: true, dotSize: 6, spacing: 4)
+                    } else {
+                        Image(systemName: "arrow.clockwise")
+                            .font(.system(size: 13, weight: .bold))
+                            .foregroundStyle(JaaymaStyle.ink)
+                    }
+                }
+                .accessibilityLabel("Actualiser")
+            }
+        }
         .task(id: section) {
             page = 1
             query = ""
@@ -98,26 +77,166 @@ struct AdminSectionView: View {
         }
     }
 
-    private var header: some View {
-        HStack(alignment: .center, spacing: 14) {
-            BrandMark(size: 48)
-            VStack(alignment: .leading, spacing: 3) {
-                Text("CENTRE DE PILOTAGE")
-                    .font(.caption2.weight(.heavy))
-                    .tracking(1.35)
-                    .foregroundStyle(JaaymaStyle.hibiscus)
-                Text(section.title)
-                    .font(.system(size: 26, weight: .bold, design: .rounded))
-                    .foregroundStyle(JaaymaStyle.ink)
+    // MARK: - Search Bar
+
+    private var searchBar: some View {
+        HStack(spacing: 10) {
+            Image(systemName: "magnifyingglass")
+                .font(.system(size: 14, weight: .bold))
+                .foregroundStyle(JaaymaStyle.muted)
+
+            TextField("Rechercher (nom, téléphone, référence)…", text: $query)
+                .font(.system(size: 14, weight: .medium))
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
+                .onSubmit {
+                    page = 1
+                    Task { await load() }
+                }
+
+            if !query.isEmpty {
+                Button {
+                    query = ""
+                    page = 1
+                    Task { await load() }
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundStyle(JaaymaStyle.muted)
+                }
             }
-            Spacer(minLength: 0)
-            Image(systemName: section.symbol)
-                .font(.system(size: 16, weight: .bold))
-                .foregroundStyle(JaaymaStyle.ink)
-                .padding(12)
-                .background(JaaymaStyle.sun.opacity(0.42), in: Circle())
+
+            Button {
+                page = 1
+                Task { await load() }
+            } label: {
+                Text("Filtrer")
+                    .font(.system(size: 12, weight: .black, design: .rounded))
+                    .foregroundStyle(JaaymaStyle.ink)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 8)
+                    .background(JaaymaStyle.sun, in: RoundedRectangle(cornerRadius: 10))
+                    .overlay(RoundedRectangle(cornerRadius: 10).stroke(JaaymaStyle.ink, lineWidth: 1.8))
+                    .shadow(color: JaaymaStyle.ink, radius: 0, x: 2, y: 2)
+            }
         }
-        .padding(.bottom, 4)
+        .padding(12)
+        .background(Color.white, in: RoundedRectangle(cornerRadius: 16))
+        .overlay(RoundedRectangle(cornerRadius: 16).stroke(JaaymaStyle.ink, lineWidth: 2))
+        .shadow(color: JaaymaStyle.ink, radius: 0, x: 3, y: 3)
+    }
+
+    // MARK: - Pagination Bar
+
+    private func paginationBar(_ info: PageInfo) -> some View {
+        HStack {
+            Button {
+                page = max(1, page - 1)
+                Task { await load() }
+            } label: {
+                HStack(spacing: 4) {
+                    Image(systemName: "chevron.left")
+                    Text("Précédent")
+                }
+                .font(.system(size: 12, weight: .black, design: .rounded))
+                .foregroundStyle(info.current <= 1 ? JaaymaStyle.muted : JaaymaStyle.ink)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 8)
+                .background(info.current <= 1 ? Color.gray.opacity(0.1) : Color.white, in: RoundedRectangle(cornerRadius: 10))
+                .overlay(RoundedRectangle(cornerRadius: 10).stroke(JaaymaStyle.ink, lineWidth: 1.5))
+                .shadow(color: info.current <= 1 ? .clear : JaaymaStyle.ink, radius: 0, x: 2, y: 2)
+            }
+            .disabled(info.current <= 1)
+
+            Spacer()
+
+            Text("Page \(info.current) / \(info.total)")
+                .font(.system(size: 12, weight: .bold))
+                .foregroundStyle(JaaymaStyle.muted)
+
+            Spacer()
+
+            Button {
+                page = min(info.total, page + 1)
+                Task { await load() }
+            } label: {
+                HStack(spacing: 4) {
+                    Text("Suivant")
+                    Image(systemName: "chevron.right")
+                }
+                .font(.system(size: 12, weight: .black, design: .rounded))
+                .foregroundStyle(info.current >= info.total ? JaaymaStyle.muted : JaaymaStyle.ink)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 8)
+                .background(info.current >= info.total ? Color.gray.opacity(0.1) : Color.white, in: RoundedRectangle(cornerRadius: 10))
+                .overlay(RoundedRectangle(cornerRadius: 10).stroke(JaaymaStyle.ink, lineWidth: 1.5))
+                .shadow(color: info.current >= info.total ? .clear : JaaymaStyle.ink, radius: 0, x: 2, y: 2)
+            }
+            .disabled(info.current >= info.total)
+        }
+        .padding(14)
+        .background(JaaymaStyle.paper, in: RoundedRectangle(cornerRadius: 16))
+        .overlay(RoundedRectangle(cornerRadius: 16).stroke(JaaymaStyle.ink, lineWidth: 2))
+        .shadow(color: JaaymaStyle.ink, radius: 0, x: 3, y: 3)
+    }
+
+    // MARK: - Error Card
+
+    private func errorCard(_ message: String) -> some View {
+        VStack(spacing: 14) {
+            HStack(spacing: 10) {
+                Image(systemName: "wifi.exclamationmark")
+                    .font(.system(size: 20, weight: .bold))
+                    .foregroundStyle(JaaymaStyle.darkHibiscus)
+                Text("Connexion interrompue")
+                    .font(.system(size: 16, weight: .black, design: .rounded))
+                    .foregroundStyle(JaaymaStyle.darkHibiscus)
+            }
+
+            Text(message)
+                .font(.system(size: 13, weight: .medium))
+                .foregroundStyle(JaaymaStyle.muted)
+                .multilineTextAlignment(.center)
+
+            Button {
+                Task { await load() }
+            } label: {
+                HStack(spacing: 8) {
+                    Image(systemName: "arrow.clockwise")
+                    Text("Réessayer")
+                }
+                .font(.system(size: 13, weight: .black, design: .rounded))
+                .foregroundStyle(JaaymaStyle.ink)
+                .padding(.horizontal, 20)
+                .padding(.vertical, 10)
+                .background(JaaymaStyle.sun, in: RoundedRectangle(cornerRadius: 12))
+                .overlay(RoundedRectangle(cornerRadius: 12).stroke(JaaymaStyle.ink, lineWidth: 2))
+                .shadow(color: JaaymaStyle.ink, radius: 0, x: 2.5, y: 2.5)
+            }
+        }
+        .padding(24)
+        .frame(maxWidth: .infinity)
+        .background(JaaymaStyle.hibiscus.opacity(0.1), in: RoundedRectangle(cornerRadius: 20))
+        .overlay(RoundedRectangle(cornerRadius: 20).stroke(JaaymaStyle.hibiscus.opacity(0.4), lineWidth: 2))
+    }
+
+    private var badgeTextForSection: String? {
+        switch section {
+        case .overview: return "Données en direct"
+        case .shops:
+            if case .shops(let page) = data { return "\(page.total) boutique\(page.total != 1 ? "s" : "")" }
+            return nil
+        case .accounts:
+            if case .accounts(let page) = data { return "\(page.total) compte\(page.total != 1 ? "s" : "")" }
+            return nil
+        case .orders:
+            if case .orders(let page) = data { return "\(page.total) commande\(page.total != 1 ? "s" : "")" }
+            return nil
+        case .subscriptions:
+            if case .subscriptions(let page) = data { return "\(page.shops.total) boutique\(page.shops.total != 1 ? "s" : "")" }
+            return nil
+        default:
+            return nil
+        }
     }
 
     @ViewBuilder
@@ -179,4 +298,3 @@ struct AdminSectionView: View {
         await load()
     }
 }
-

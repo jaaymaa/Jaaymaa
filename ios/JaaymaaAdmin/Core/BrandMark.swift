@@ -2,6 +2,7 @@ import SwiftUI
 
 struct BrandMark: View {
     var size: CGFloat
+    var brutalist: Bool = true
 
     var body: some View {
         ZStack {
@@ -16,8 +17,13 @@ struct BrandMark: View {
                 .position(x: size * 64 / 120, y: size * 28 / 120)
         }
         .frame(width: size, height: size)
-        .overlay(JaaymaaTileShape().stroke(JaaymaStyle.ink, lineWidth: max(1, size * 0.03)))
-        .shadow(color: JaaymaStyle.ink.opacity(0.16), radius: 6, y: 3)
+        .overlay(JaaymaaTileShape().stroke(JaaymaStyle.ink, lineWidth: max(1.5, size * 0.035)))
+        .shadow(
+            color: brutalist ? JaaymaStyle.ink : JaaymaStyle.ink.opacity(0.16),
+            radius: brutalist ? 0 : 6,
+            x: brutalist ? max(2, size * 0.04) : 0,
+            y: brutalist ? max(2, size * 0.04) : 3
+        )
         .accessibilityHidden(true)
     }
 }
@@ -56,4 +62,3 @@ struct JaaymaaJShape: Shape {
         return path
     }
 }
-

@@ -4,37 +4,98 @@ struct OrderListContent: View {
     let page: AdminPage<AdminOrder>
 
     var body: some View {
-        SectionCard(title: "Commandes récentes", subtitle: "\(page.total) commandes") {
+        SectionCard(title: "Commandes récentes", subtitle: "\(page.total) commandes sur la plateforme") {
             if page.items.isEmpty {
-                Text("Aucune commande à afficher.")
-                    .foregroundStyle(JaaymaStyle.muted)
-            }
-
-            ForEach(page.items) { order in
-                HStack(spacing: 11) {
+                VStack(spacing: 8) {
                     Image(systemName: "bag")
-                        .foregroundStyle(JaaymaStyle.ink)
-                        .padding(10)
-                        .background(JaaymaStyle.sun.opacity(0.35), in: RoundedRectangle(cornerRadius: 11))
-
-                    VStack(alignment: .leading, spacing: 3) {
-                        Text(order.reference)
-                            .font(.caption.weight(.heavy))
-                        Text("\(order.customerName) · \(order.shop.name)")
-                            .font(.caption)
-                            .foregroundStyle(JaaymaStyle.muted)
-                        Text("\(statusLabel(order.status)) · \(order.paymentStatus)")
-                            .font(.caption2.weight(.semibold))
-                            .foregroundStyle(JaaymaStyle.green)
-                    }
-
-                    Spacer()
-                    Text(formatFcfa(order.total))
-                        .font(.caption.weight(.heavy))
+                        .font(.system(size: 32))
+                        .foregroundStyle(JaaymaStyle.muted)
+                    Text("Aucune commande trouvée.")
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundStyle(JaaymaStyle.muted)
                 }
-                .padding(.vertical, 4)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 24)
+            } else {
+                VStack(spacing: 12) {
+                    ForEach(page.items) { order in
+                        orderCard(order)
+                    }
+                }
             }
         }
     }
-}
 
+    private func orderCard(_ order: AdminOrder) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(alignment: .top, spacing: 12) {
+                Image(systemName: "bag.fill")
+                    .font(.system(size: 15, weight: .bold))
+                    .foregroundStyle(JaaymaStyle.ink)
+                    .frame(width: 40, height: 40)
+                    .background(JaaymaStyle.mint, in: RoundedRectangle(cornerRadius: 11))
+                    .overlay(RoundedRectangle(cornerRadius: 11).stroke(JaaymaStyle.ink, lineWidth: 1.5))
+
+                VStack(alignment: .leading, spacing: 3) {
+                    HStack(spacing: 6) {
+                        Text(order.reference)
+                            .font(.system(size: 12, weight: .black, design: .monospaced))
+                            .foregroundStyle(JaaymaStyle.goldText)
+
+                        Text("·")
+                            .foregroundStyle(JaaymaStyle.muted)
+
+                        Text(order.shop.name)
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundStyle(JaaymaStyle.ink)
+                    }
+
+                    Text(order.customerName)
+                        .font(.system(size: 14, weight: .black, design: .rounded))
+                        .foregroundStyle(JaaymaStyle.ink)
+
+                    if let phone = order.customerPhone, let url = URL(string: "tel:\(phone)") {
+                        Link(destination: url) {
+                            Text(phone)
+                                .font(.system(size: 11, weight: .medium, design: .monospaced))
+                                .foregroundStyle(JaaymaStyle.muted)
+                        }
+                    }
+                }
+
+                Spacer()
+
+                VStack(alignment: .trailing, spacing: 3) {
+                    Text(formatFcfa(order.total))
+                        .font(.system(size: 15, weight: .black, design: .rounded))
+                        .foregroundStyle(JaaymaStyle.ink)
+
+                    Text(order.paymentStatus.uppercased() == "PAID" ? "Payée" : "En attente")
+                        .font(.system(size: 10, weight: .black))
+                        .foregroundStyle(order.paymentStatus.uppercased() == "PAID" ? JaaymaStyle.baobab : JaaymaStyle.goldText)
+                }
+            }
+
+            // Bottom Badges Row
+            HStack {
+                Text(statusLabel(order.status))
+                    .font(.system(size: 10, weight: .black))
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 3.5)
+                    .background(JaaymaStyle.chip, in: Capsule())
+                    .overlay(Capsule().stroke(JaaymaStyle.ink, lineWidth: 1.2))
+                    .foregroundStyle(JaaymaStyle.ink)
+
+                Spacer()
+
+                Text("\(order.counts.items) article\(order.counts.items != 1 ? "s" : "")")
+                    .font(.system(size: 11, weight: .bold))
+                    .foregroundStyle(JaaymaStyle.muted)
+            }
+        }
+        .padding(14)
+        .background(Color.white, in: RoundedRectangle(cornerRadius: 16))
+        .overlay(RoundedRectangle(cornerRadius: 16).stroke(JaaymaStyle.ink, lineWidth: 1.8))
+        .shadow(color: JaaymaStyle.ink, radius: 0, x: 2.5, y: 2.5)
+    }
+}
