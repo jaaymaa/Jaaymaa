@@ -2,151 +2,122 @@ import SwiftUI
 
 struct AdminMoreView: View {
     @EnvironmentObject private var session: AdminSessionStore
-    @Environment(\.dismiss) private var dismiss
-    @Binding var currentSection: AdminSection
-
-    init(currentSection: Binding<AdminSection> = .constant(.settings)) {
-        self._currentSection = currentSection
-    }
-
-    private let moreSections: [AdminSection] = AdminSection.moreSections
+    private let sections: [AdminSection] = [.subscriptions, .analytics, .notifications, .settings]
 
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(spacing: 20) {
-                    // Header Card
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text("GESTION AVANCÉE")
-                            .font(.system(size: 10, weight: .black))
-                            .tracking(1.4)
-                            .foregroundStyle(JaaymaStyle.darkHibiscus)
+        ScrollView {
+            VStack(alignment: .leading, spacing: 18) {
+                header
 
-                        Text("Modules complémentaires")
-                            .font(.system(size: 22, weight: .black, design: .rounded))
-                            .foregroundStyle(JaaymaStyle.ink)
+                SectionCard(title: "Gestion avancée", subtitle: "Rubriques d’administration") {
+                    ForEach(sections) { section in
+                        NavigationLink {
+                            AdminSectionView(section: section)
+                        } label: {
+                            HStack(spacing: 14) {
+                                Image(systemName: section.symbol)
+                                    .font(.system(size: 16, weight: .bold))
+                                    .foregroundStyle(JaaymaStyle.ink)
+                                    .frame(width: 42, height: 42)
+                                    .background(JaaymaStyle.sun.opacity(0.4), in: RoundedRectangle(cornerRadius: 12))
 
-                        Text("Accède aux abonnements, statistiques d’audience, alertes push et réglages système.")
-                            .font(.system(size: 13, weight: .medium))
-                            .foregroundStyle(JaaymaStyle.muted)
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(16)
-                    .background(JaaymaStyle.sun.opacity(0.3), in: RoundedRectangle(cornerRadius: 18))
-                    .overlay(RoundedRectangle(cornerRadius: 18).stroke(JaaymaStyle.ink, lineWidth: 1.5))
-
-                    // 2x2 Symmetrical Grid for the 4 "More" sections
-                    LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)], spacing: 12) {
-                        ForEach(moreSections) { section in
-                            Button {
-                                JaaymaHaptics.selection()
-                                currentSection = section
-                                dismiss()
-                            } label: {
-                                VStack(alignment: .leading, spacing: 12) {
-                                    HStack {
-                                        Image(systemName: section.symbol)
-                                            .font(.system(size: 16, weight: .bold))
-                                            .foregroundStyle(currentSection == section ? JaaymaStyle.ink : JaaymaStyle.sun)
-                                            .frame(width: 36, height: 36)
-                                            .background(
-                                                currentSection == section ? JaaymaStyle.sun : JaaymaStyle.ink,
-                                                in: RoundedRectangle(cornerRadius: 10)
-                                            )
-
-                                        Spacer()
-
-                                        if currentSection == section {
-                                            Circle()
-                                                .fill(JaaymaStyle.baobab)
-                                                .frame(width: 8, height: 8)
-                                        }
-                                    }
-
-                                    VStack(alignment: .leading, spacing: 3) {
-                                        Text(section.shortTitle)
-                                            .font(.system(size: 15, weight: .black, design: .rounded))
-                                            .foregroundStyle(JaaymaStyle.ink)
-
-                                        Text(section.title)
-                                            .font(.system(size: 11, weight: .medium))
-                                            .foregroundStyle(JaaymaStyle.muted)
-                                            .lineLimit(1)
-                                    }
-                                }
-                                .padding(14)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .frame(minHeight: 110)
-                                .background(Color.white, in: RoundedRectangle(cornerRadius: 18))
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 18)
-                                        .stroke(currentSection == section ? JaaymaStyle.ink : JaaymaStyle.ink.opacity(0.2), lineWidth: currentSection == section ? 2 : 1)
-                                )
-                                .shadow(
-                                    color: currentSection == section ? JaaymaStyle.ink : JaaymaStyle.ink.opacity(0.08),
-                                    radius: 0,
-                                    x: currentSection == section ? 2.5 : 1.5,
-                                    y: currentSection == section ? 2.5 : 1.5
-                                )
-                            }
-                            .buttonStyle(.plain)
-                        }
-                    }
-
-                    // Account & Disconnect Section
-                    VStack(spacing: 12) {
-                        if let phone = session.userPhone {
-                            HStack {
-                                HStack(spacing: 8) {
-                                    Circle().fill(JaaymaStyle.baobab).frame(width: 8, height: 8)
-                                    Text("Connecté en tant que")
-                                        .font(.system(size: 12, weight: .medium))
+                                VStack(alignment: .leading, spacing: 3) {
+                                    Text(section.title)
+                                        .font(.subheadline.weight(.bold))
+                                        .foregroundStyle(JaaymaStyle.ink)
+                                    Text(sectionSubtitle(section))
+                                        .font(.caption)
                                         .foregroundStyle(JaaymaStyle.muted)
                                 }
-                                Spacer()
-                                Text(phone)
-                                    .font(.system(size: 13, weight: .bold, design: .monospaced))
-                                    .foregroundStyle(JaaymaStyle.ink)
+
+                                Spacer(minLength: 0)
+
+                                Image(systemName: "chevron.right")
+                                    .font(.caption.weight(.bold))
+                                    .foregroundStyle(JaaymaStyle.muted)
                             }
-                            .padding(.horizontal, 14)
-                            .padding(.vertical, 10)
-                            .background(JaaymaStyle.chip, in: RoundedRectangle(cornerRadius: 12))
+                            .padding(.vertical, 4)
+                        }
+                    }
+                }
+
+                SectionCard(title: "Session administrateur", subtitle: "Accès autorisé") {
+                    HStack(spacing: 12) {
+                        Image(systemName: "person.badge.shield.checkmark.fill")
+                            .font(.title2)
+                            .foregroundStyle(JaaymaStyle.green)
+
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(session.phone ?? "Compte administrateur")
+                                .font(.subheadline.weight(.bold).monospaced())
+                                .foregroundStyle(JaaymaStyle.ink)
+                            Text("Gestion et données sécurisées de Jaaymaa")
+                                .font(.caption2)
+                                .foregroundStyle(JaaymaStyle.muted)
                         }
 
-                        Button {
-                            JaaymaHaptics.medium()
-                            dismiss()
-                            Task { await session.signOut() }
-                        } label: {
-                            HStack(spacing: 8) {
-                                Image(systemName: "rectangle.portrait.and.arrow.right")
-                                    .font(.system(size: 14, weight: .bold))
-                                Text("Se déconnecter de Jaaymaa")
-                                    .font(.system(size: 14, weight: .bold, design: .rounded))
-                            }
-                            .foregroundStyle(JaaymaStyle.hibiscus)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 14)
-                            .background(JaaymaStyle.hibiscus.opacity(0.1), in: RoundedRectangle(cornerRadius: 14))
-                            .overlay(RoundedRectangle(cornerRadius: 14).stroke(JaaymaStyle.hibiscus.opacity(0.3), lineWidth: 1.5))
+                        Spacer(minLength: 0)
+                    }
+                    .padding(.vertical, 4)
+
+                    Divider()
+                        .padding(.vertical, 2)
+
+                    Button(role: .destructive) {
+                        Task { await session.signOut() }
+                    } label: {
+                        HStack(spacing: 8) {
+                            Image(systemName: "rectangle.portrait.and.arrow.right")
+                            Text("Se déconnecter")
+                                .fontWeight(.bold)
                         }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                        .foregroundStyle(JaaymaStyle.hibiscus)
+                        .background(JaaymaStyle.hibiscus.opacity(0.12), in: RoundedRectangle(cornerRadius: 14))
                     }
-                    .padding(.top, 10)
                 }
-                .padding(20)
             }
-            .background(JaaymaStyle.paper.ignoresSafeArea())
-            .navigationTitle("Autres modules")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("Fermer") {
-                        dismiss()
-                    }
-                    .font(.system(size: 14, weight: .bold))
+            .padding(.horizontal, 20)
+            .padding(.vertical, 18)
+            .frame(maxWidth: 1100)
+            .frame(maxWidth: .infinity)
+        }
+        .background(JaaymaStyle.paper.ignoresSafeArea())
+        .navigationTitle("Plus")
+        .navigationBarTitleDisplayMode(.inline)
+    }
+
+    private var header: some View {
+        HStack(alignment: .center, spacing: 14) {
+            BrandMark(size: 44)
+            VStack(alignment: .leading, spacing: 3) {
+                Text("CENTRE DE PILOTAGE")
+                    .font(.caption2.weight(.heavy))
+                    .tracking(1.35)
+                    .foregroundStyle(JaaymaStyle.hibiscus)
+                Text("Autres rubriques")
+                    .font(.system(size: 24, weight: .bold, design: .rounded))
                     .foregroundStyle(JaaymaStyle.ink)
-                }
             }
+            Spacer(minLength: 0)
+            Image(systemName: "ellipsis.circle")
+                .font(.system(size: 18, weight: .bold))
+                .foregroundStyle(JaaymaStyle.ink)
+                .frame(width: 44, height: 44)
+                .background(JaaymaStyle.sun, in: RoundedRectangle(cornerRadius: 13))
+                .overlay(RoundedRectangle(cornerRadius: 13).stroke(JaaymaStyle.ink.opacity(0.12), lineWidth: 1))
+        }
+        .padding(.bottom, 4)
+    }
+
+    private func sectionSubtitle(_ section: AdminSection) -> String {
+        switch section {
+        case .subscriptions: return "Forfaits des boutiques, abonnements Pro et Pro+"
+        case .analytics: return "Statistiques de visite et pages consultées"
+        case .notifications: return "Envoi d’annonces push aux vendeurs"
+        case .settings: return "Paramètres de la plateforme et tarifs"
+        default: return ""
         }
     }
 }

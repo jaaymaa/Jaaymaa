@@ -12,25 +12,23 @@ struct SectionCard<Content: View>: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
+        VStack(alignment: .leading, spacing: 13) {
             VStack(alignment: .leading, spacing: 3) {
                 Text(title)
-                    .font(.system(size: 17, weight: .black, design: .rounded))
+                    .font(.headline.weight(.bold))
                     .foregroundStyle(JaaymaStyle.ink)
-
                 if let subtitle {
                     Text(subtitle)
-                        .font(.system(size: 12, weight: .medium))
+                        .font(.caption)
                         .foregroundStyle(JaaymaStyle.muted)
                 }
             }
-
             content
         }
-        .padding(16)
+        .padding(17)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.white, in: RoundedRectangle(cornerRadius: 20))
-        .overlay(RoundedRectangle(cornerRadius: 20).stroke(JaaymaStyle.ink, lineWidth: 1.5))
-        .shadow(color: JaaymaStyle.ink, radius: 0, x: 3, y: 3)
+        .background(.white.opacity(0.8), in: RoundedRectangle(cornerRadius: 22))
+        .overlay(RoundedRectangle(cornerRadius: 22).stroke(JaaymaStyle.ink.opacity(0.07), lineWidth: 1))
     }
 }
+
