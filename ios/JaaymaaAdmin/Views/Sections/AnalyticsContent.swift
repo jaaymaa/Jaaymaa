@@ -5,7 +5,7 @@ struct AnalyticsContent: View {
 
     var body: some View {
         if value.status == "ready", let current = value.current {
-            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 150, maximum: 250), spacing: 12)], spacing: 12) {
                 MetricTile(
                     title: "Visiteurs actifs",
                     value: "\(current.activeUsers)",

@@ -18,7 +18,7 @@ struct AdminShellView: View {
                         }
                     }
                     .scrollContentBackground(.hidden)
-                    .background(JaaymaStyle.paper)
+                    .background(JaaymaStyle.night)
                     .navigationTitle("Jaaymaa Admin")
                     .toolbar {
                         ToolbarItem(placement: .topBarTrailing) {
@@ -30,7 +30,7 @@ struct AdminShellView: View {
                         AdminSectionView(section: sidebarSelection ?? .overview)
                     }
                 }
-                .tint(JaaymaStyle.ink)
+                .tint(JaaymaStyle.sun)
             } else {
                 TabView(selection: $tabSelection) {
                     Tab(AdminTab.overview.title, systemImage: AdminTab.overview.symbol, value: AdminTab.overview) {
@@ -49,7 +49,8 @@ struct AdminShellView: View {
                         NavigationStack { AdminMoreView() }
                     }
                 }
-                .tint(JaaymaStyle.ink)
+                .tint(JaaymaStyle.sun)
+                .sensoryFeedback(.selection, trigger: tabSelection)
             }
         }
         .toolbarBackgroundVisibility(.visible, for: .tabBar)

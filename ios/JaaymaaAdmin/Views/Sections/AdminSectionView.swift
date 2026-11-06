@@ -22,8 +22,8 @@ struct AdminSectionView: View {
                 sectionScrollView
             }
         }
-        .background(JaaymaStyle.paper.ignoresSafeArea())
-        .navigationTitle(section.title)
+        .background(JaaymaStyle.night.ignoresSafeArea())
+        .navigationTitle(section == .overview ? "Administration" : section.title)
         .navigationBarTitleDisplayMode(.large)
         .task(id: section) {
             page = 1
@@ -52,11 +52,13 @@ struct AdminSectionView: View {
                         systemImage: "wifi.exclamationmark",
                         description: Text(errorMessage)
                     )
-                    Button("Réessayer") {
+                    Button {
                         Task { await load() }
+                    } label: {
+                        Label("Réessayer", systemImage: "arrow.clockwise")
+                            .frame(maxWidth: .infinity)
                     }
-                    .buttonStyle(.borderedProminent)
-                    .tint(JaaymaStyle.ink)
+                    .buttonStyle(JaaymaPrimaryButtonStyle())
                 } else if let data {
                     content(data)
                     if let pageInfo = data.pageInfo {
@@ -82,7 +84,7 @@ struct AdminSectionView: View {
                             .disabled(pageInfo.current >= pageInfo.total)
                         }
                         .buttonStyle(.bordered)
-                        .tint(JaaymaStyle.ink)
+                        .tint(JaaymaStyle.sun)
                     }
                 }
             }

@@ -48,7 +48,7 @@ struct AdminMoreView: View {
             .frame(maxWidth: 1100)
             .frame(maxWidth: .infinity)
         }
-        .background(JaaymaStyle.paper.ignoresSafeArea())
+        .background(JaaymaStyle.night.ignoresSafeArea())
         .navigationTitle("Plus")
         .navigationBarTitleDisplayMode(.large)
     }

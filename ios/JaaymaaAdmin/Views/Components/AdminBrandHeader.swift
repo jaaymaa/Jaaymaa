@@ -11,12 +11,12 @@ struct AdminBrandHeader: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text("Jaaymaa")
                     .font(.system(size: 17, weight: .bold, design: .rounded))
-                    .foregroundStyle(JaaymaStyle.ink)
+                    .foregroundStyle(JaaymaStyle.paper)
 
                 Text("CENTRE DE PILOTAGE")
                     .font(.system(size: 9, weight: .bold))
                     .tracking(1.05)
-                    .foregroundStyle(JaaymaStyle.muted)
+                    .foregroundStyle(JaaymaStyle.paper.opacity(0.58))
             }
 
             Spacer(minLength: 12)
@@ -36,10 +36,10 @@ struct AdminBrandHeader: View {
                 Image(systemName: "person.crop.circle.fill")
                     .font(.system(size: 19, weight: .medium))
                     .symbolRenderingMode(.hierarchical)
-                    .foregroundStyle(JaaymaStyle.ink)
+                    .foregroundStyle(JaaymaStyle.paper)
                     .frame(width: 40, height: 40)
-                    .background(.white.opacity(0.9), in: Circle())
-                    .overlay(Circle().stroke(JaaymaStyle.ink.opacity(0.08), lineWidth: 1))
+                    .background(.ultraThinMaterial, in: Circle())
+                    .overlay(Circle().stroke(JaaymaStyle.paper.opacity(0.15), lineWidth: 1))
             }
             .accessibilityLabel("Compte administrateur")
         }

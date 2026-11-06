@@ -2,7 +2,7 @@ import SwiftUI
 
 struct OverviewContent: View {
     let value: AdminOverview
-    private let columns = [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)]
+    private let columns = [GridItem(.adaptive(minimum: 150, maximum: 250), spacing: 12)]
 
     var body: some View {
         LazyVGrid(columns: columns, spacing: 12) {

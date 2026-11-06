@@ -10,7 +10,7 @@ struct AdminLoginView: View {
     var body: some View {
         ZStack {
             LinearGradient(
-                colors: [JaaymaStyle.ink, Color(red: 31 / 255, green: 53 / 255, blue: 91 / 255)],
+                colors: [JaaymaStyle.night, JaaymaStyle.nightPanel],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
@@ -43,13 +43,19 @@ struct AdminLoginView: View {
                     TextField("Numéro de téléphone", text: $phone)
                         .keyboardType(.phonePad)
                         .textContentType(.telephoneNumber)
+                        .foregroundStyle(JaaymaStyle.ink)
+                        .tint(JaaymaStyle.ink)
                         .padding(16)
-                        .background(.white, in: RoundedRectangle(cornerRadius: 16))
+                        .background(JaaymaStyle.paper, in: RoundedRectangle(cornerRadius: 15))
+                        .overlay(RoundedRectangle(cornerRadius: 15).stroke(JaaymaStyle.ink, lineWidth: 2))
 
                     SecureField("Mot de passe", text: $password)
                         .textContentType(.password)
+                        .foregroundStyle(JaaymaStyle.ink)
+                        .tint(JaaymaStyle.ink)
                         .padding(16)
-                        .background(.white, in: RoundedRectangle(cornerRadius: 16))
+                        .background(JaaymaStyle.paper, in: RoundedRectangle(cornerRadius: 15))
+                        .overlay(RoundedRectangle(cornerRadius: 15).stroke(JaaymaStyle.ink, lineWidth: 2))
 
                     if let message {
                         Text(message)
@@ -64,18 +70,17 @@ struct AdminLoginView: View {
                                 ProgressView().tint(JaaymaStyle.ink)
                             }
                             Text(isLoading ? "Connexion…" : "Se connecter")
-                                .fontWeight(.bold)
                         }
                         .frame(maxWidth: .infinity)
-                        .padding(.vertical, 16)
-                        .foregroundStyle(JaaymaStyle.ink)
-                        .background(JaaymaStyle.sun, in: Capsule())
                     }
+                    .buttonStyle(JaaymaPrimaryButtonStyle())
                     .disabled(isLoading || phone.isEmpty || password.isEmpty)
                 }
                 .padding(18)
-                .background(JaaymaStyle.paper, in: RoundedRectangle(cornerRadius: 26))
-                .overlay(RoundedRectangle(cornerRadius: 26).stroke(JaaymaStyle.sun.opacity(0.75), lineWidth: 1))
+                .background(JaaymaStyle.paper, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: 24, style: .continuous).stroke(JaaymaStyle.ink, lineWidth: 2.5))
+                .shadow(color: JaaymaStyle.cardShadow, radius: 0, x: 3, y: 5)
+                .environment(\.colorScheme, .light)
 
                 Spacer(minLength: 0)
 

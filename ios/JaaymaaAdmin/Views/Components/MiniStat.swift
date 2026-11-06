@@ -16,8 +16,10 @@ struct MiniStat: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(13)
-        .background(.white.opacity(0.86), in: RoundedRectangle(cornerRadius: 17, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: 17, style: .continuous).stroke(JaaymaStyle.ink.opacity(0.05), lineWidth: 1))
+        .background(JaaymaStyle.paper, in: RoundedRectangle(cornerRadius: 17, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 17, style: .continuous).stroke(JaaymaStyle.ink, lineWidth: 2))
+        .shadow(color: JaaymaStyle.cardShadow, radius: 0, x: 2, y: 3)
+        .environment(\.colorScheme, .light)
     }
 }
 

@@ -8,7 +8,7 @@ struct JaaymaaAdminApp: App {
         WindowGroup {
             AdminRootView()
                 .environmentObject(session)
-                .preferredColorScheme(.light)
+                .preferredColorScheme(.dark)
         }
     }
 }

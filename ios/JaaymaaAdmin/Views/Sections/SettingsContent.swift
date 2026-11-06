@@ -63,8 +63,7 @@ struct SettingsContent: View {
                 }
                 save(["proPriceXof": pro, "proPlusPriceXof": proPlus])
             }
-            .buttonStyle(.borderedProminent)
-            .tint(JaaymaStyle.ink)
+            .buttonStyle(JaaymaPrimaryButtonStyle())
 
             Label("Pro · \(formatFcfa(value.proPriceXof))", systemImage: "creditcard")
             Label("Pro+ · \(formatFcfa(value.proPlusPriceXof))", systemImage: "sparkles")

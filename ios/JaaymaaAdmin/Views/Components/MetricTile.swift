@@ -25,6 +25,7 @@ struct MetricTile: View {
                 .foregroundStyle(JaaymaStyle.ink)
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
+                .contentTransition(.numericText())
             Text(note)
                 .font(.caption2.weight(.medium))
                 .foregroundStyle(JaaymaStyle.muted)
@@ -32,9 +33,11 @@ struct MetricTile: View {
         }
         .padding(15)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(.white.opacity(0.9), in: RoundedRectangle(cornerRadius: 22, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: 22, style: .continuous).stroke(JaaymaStyle.ink.opacity(0.06), lineWidth: 1))
-        .shadow(color: JaaymaStyle.ink.opacity(0.03), radius: 12, y: 5)
+        .background(JaaymaStyle.paper, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 20, style: .continuous).stroke(JaaymaStyle.ink, lineWidth: 2.5))
+        .shadow(color: JaaymaStyle.cardShadow, radius: 0, x: 2, y: 4)
+        .environment(\.colorScheme, .light)
+        .animation(.snappy(duration: 0.25), value: value)
     }
 }
 

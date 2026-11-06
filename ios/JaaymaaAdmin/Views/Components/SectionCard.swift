@@ -15,7 +15,7 @@ struct SectionCard<Content: View>: View {
         VStack(alignment: .leading, spacing: 13) {
             VStack(alignment: .leading, spacing: 3) {
                 Text(title)
-                    .font(.headline.weight(.bold))
+                    .font(.system(size: 18, weight: .heavy, design: .rounded))
                     .foregroundStyle(JaaymaStyle.ink)
                 if let subtitle {
                     Text(subtitle)
@@ -27,9 +27,10 @@ struct SectionCard<Content: View>: View {
         }
         .padding(17)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(.white.opacity(0.88), in: RoundedRectangle(cornerRadius: 24, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: 24, style: .continuous).stroke(JaaymaStyle.ink.opacity(0.055), lineWidth: 1))
-        .shadow(color: JaaymaStyle.ink.opacity(0.035), radius: 14, y: 6)
+        .background(JaaymaStyle.paper, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 22, style: .continuous).stroke(JaaymaStyle.ink, lineWidth: 2.5))
+        .shadow(color: JaaymaStyle.cardShadow, radius: 0, x: 2, y: 4)
+        .environment(\.colorScheme, .light)
     }
 }
 

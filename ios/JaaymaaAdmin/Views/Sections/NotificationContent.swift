@@ -22,8 +22,7 @@ struct NotificationContent: View {
                 Label(sending ? "Envoi…" : "Envoyer la notification", systemImage: "paperplane.fill")
                     .frame(maxWidth: .infinity)
             }
-            .buttonStyle(.borderedProminent)
-            .tint(JaaymaStyle.ink)
+            .buttonStyle(JaaymaPrimaryButtonStyle())
             .disabled(sending || title.count < 3 || bodyText.count < 3 || !value.pushConfigured)
 
             if let resultMessage {
