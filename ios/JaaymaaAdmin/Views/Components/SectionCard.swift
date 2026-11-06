@@ -27,9 +27,15 @@ struct SectionCard<Content: View>: View {
         }
         .padding(17)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(JaaymaStyle.paper, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: 22, style: .continuous).stroke(JaaymaStyle.ink, lineWidth: 2.5))
-        .shadow(color: JaaymaStyle.cardShadow, radius: 0, x: 2, y: 4)
+        .background {
+            RoundedRectangle(cornerRadius: 22, style: .continuous)
+                .fill(JaaymaStyle.paper)
+                .shadow(color: JaaymaStyle.cardShadow, radius: 0, x: 2, y: 4)
+        }
+        .overlay {
+            RoundedRectangle(cornerRadius: 22, style: .continuous)
+                .stroke(JaaymaStyle.ink, lineWidth: 2.5)
+        }
         .environment(\.colorScheme, .light)
     }
 }

@@ -130,9 +130,12 @@ private struct ShopListRow: View {
                         .foregroundStyle(JaaymaStyle.ink)
                         .padding(.horizontal, 11)
                         .padding(.vertical, 8)
-                        .background(JaaymaStyle.sun, in: Capsule())
+                        .background {
+                            Capsule()
+                                .fill(JaaymaStyle.sun)
+                                .shadow(color: JaaymaStyle.cardShadow, radius: 0, x: 1, y: 2)
+                        }
                         .overlay(Capsule().stroke(JaaymaStyle.ink, lineWidth: 2))
-                        .shadow(color: JaaymaStyle.cardShadow, radius: 0, x: 1, y: 2)
                 }
                 .accessibilityLabel(isFreePlan ? "Activer Pro pour \(shop.name)" : "Gérer le forfait de \(shop.name)")
 
@@ -153,9 +156,15 @@ private struct ShopListRow: View {
         }
         .padding(13)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(JaaymaStyle.paper, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: 20, style: .continuous).stroke(JaaymaStyle.ink, lineWidth: 2.5))
-        .shadow(color: JaaymaStyle.cardShadow, radius: 0, x: 2, y: 4)
+        .background {
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .fill(JaaymaStyle.paper)
+                .shadow(color: JaaymaStyle.cardShadow, radius: 0, x: 2, y: 4)
+        }
+        .overlay {
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .stroke(JaaymaStyle.ink, lineWidth: 2.5)
+        }
         .environment(\.colorScheme, .light)
     }
 
@@ -252,9 +261,15 @@ private struct ShopLogoView: View {
         }
         .frame(width: 54, height: 54)
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-        .background(JaaymaStyle.sun, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).stroke(JaaymaStyle.ink, lineWidth: 2))
-        .shadow(color: JaaymaStyle.cardShadow, radius: 0, x: 1, y: 2)
+        .background {
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(JaaymaStyle.sun)
+                .shadow(color: JaaymaStyle.cardShadow, radius: 0, x: 1, y: 2)
+        }
+        .overlay {
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .stroke(JaaymaStyle.ink, lineWidth: 2)
+        }
         .accessibilityLabel("Logo de \(name)")
     }
 

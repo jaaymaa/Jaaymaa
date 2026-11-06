@@ -33,9 +33,15 @@ struct MetricTile: View {
         }
         .padding(15)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(JaaymaStyle.paper, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: 20, style: .continuous).stroke(JaaymaStyle.ink, lineWidth: 2.5))
-        .shadow(color: JaaymaStyle.cardShadow, radius: 0, x: 2, y: 4)
+        .background {
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .fill(JaaymaStyle.paper)
+                .shadow(color: JaaymaStyle.cardShadow, radius: 0, x: 2, y: 4)
+        }
+        .overlay {
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .stroke(JaaymaStyle.ink, lineWidth: 2.5)
+        }
         .environment(\.colorScheme, .light)
         .animation(.snappy(duration: 0.25), value: value)
     }

@@ -77,9 +77,15 @@ struct AdminLoginView: View {
                     .disabled(isLoading || phone.isEmpty || password.isEmpty)
                 }
                 .padding(18)
-                .background(JaaymaStyle.paper, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
-                .overlay(RoundedRectangle(cornerRadius: 24, style: .continuous).stroke(JaaymaStyle.ink, lineWidth: 2.5))
-                .shadow(color: JaaymaStyle.cardShadow, radius: 0, x: 3, y: 5)
+                .background {
+                    RoundedRectangle(cornerRadius: 24, style: .continuous)
+                        .fill(JaaymaStyle.paper)
+                        .shadow(color: JaaymaStyle.cardShadow, radius: 0, x: 3, y: 5)
+                }
+                .overlay {
+                    RoundedRectangle(cornerRadius: 24, style: .continuous)
+                        .stroke(JaaymaStyle.ink, lineWidth: 2.5)
+                }
                 .environment(\.colorScheme, .light)
 
                 Spacer(minLength: 0)
