@@ -32,8 +32,9 @@ struct MetricTile: View {
         }
         .padding(15)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(.white.opacity(0.78), in: RoundedRectangle(cornerRadius: 20))
-        .overlay(RoundedRectangle(cornerRadius: 20).stroke(JaaymaStyle.ink.opacity(0.08), lineWidth: 1))
+        .background(.white.opacity(0.9), in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 22, style: .continuous).stroke(JaaymaStyle.ink.opacity(0.06), lineWidth: 1))
+        .shadow(color: JaaymaStyle.ink.opacity(0.03), radius: 12, y: 5)
     }
 }
 

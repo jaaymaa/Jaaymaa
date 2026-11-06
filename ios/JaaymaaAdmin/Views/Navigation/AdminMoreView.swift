@@ -7,7 +7,9 @@ struct AdminMoreView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
-                header
+                AdminBrandHeader(account: session.phone ?? "Compte administrateur") {
+                    Task { await session.signOut() }
+                }
 
                 SectionCard(title: "Gestion avancée", subtitle: "Rubriques d’administration") {
                     ForEach(sections) { section in
@@ -40,43 +42,6 @@ struct AdminMoreView: View {
                         }
                     }
                 }
-
-                SectionCard(title: "Session administrateur", subtitle: "Accès autorisé") {
-                    HStack(spacing: 12) {
-                        Image(systemName: "person.badge.shield.checkmark.fill")
-                            .font(.title2)
-                            .foregroundStyle(JaaymaStyle.green)
-
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(session.phone ?? "Compte administrateur")
-                                .font(.subheadline.weight(.bold).monospaced())
-                                .foregroundStyle(JaaymaStyle.ink)
-                            Text("Gestion et données sécurisées de Jaaymaa")
-                                .font(.caption2)
-                                .foregroundStyle(JaaymaStyle.muted)
-                        }
-
-                        Spacer(minLength: 0)
-                    }
-                    .padding(.vertical, 4)
-
-                    Divider()
-                        .padding(.vertical, 2)
-
-                    Button(role: .destructive) {
-                        Task { await session.signOut() }
-                    } label: {
-                        HStack(spacing: 8) {
-                            Image(systemName: "rectangle.portrait.and.arrow.right")
-                            Text("Se déconnecter")
-                                .fontWeight(.bold)
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 12)
-                        .foregroundStyle(JaaymaStyle.hibiscus)
-                        .background(JaaymaStyle.hibiscus.opacity(0.12), in: RoundedRectangle(cornerRadius: 14))
-                    }
-                }
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 18)
@@ -85,30 +50,7 @@ struct AdminMoreView: View {
         }
         .background(JaaymaStyle.paper.ignoresSafeArea())
         .navigationTitle("Plus")
-        .navigationBarTitleDisplayMode(.inline)
-    }
-
-    private var header: some View {
-        HStack(alignment: .center, spacing: 14) {
-            BrandMark(size: 44)
-            VStack(alignment: .leading, spacing: 3) {
-                Text("CENTRE DE PILOTAGE")
-                    .font(.caption2.weight(.heavy))
-                    .tracking(1.35)
-                    .foregroundStyle(JaaymaStyle.hibiscus)
-                Text("Autres rubriques")
-                    .font(.system(size: 24, weight: .bold, design: .rounded))
-                    .foregroundStyle(JaaymaStyle.ink)
-            }
-            Spacer(minLength: 0)
-            Image(systemName: "ellipsis.circle")
-                .font(.system(size: 18, weight: .bold))
-                .foregroundStyle(JaaymaStyle.ink)
-                .frame(width: 44, height: 44)
-                .background(JaaymaStyle.sun, in: RoundedRectangle(cornerRadius: 13))
-                .overlay(RoundedRectangle(cornerRadius: 13).stroke(JaaymaStyle.ink.opacity(0.12), lineWidth: 1))
-        }
-        .padding(.bottom, 4)
+        .navigationBarTitleDisplayMode(.large)
     }
 
     private func sectionSubtitle(_ section: AdminSection) -> String {

@@ -1,4 +1,5 @@
 import { revalidatePath } from "next/cache";
+import { getImageUrl } from "@/lib/images";
 import { nativeAdminJson, requireNativeAdmin } from "@/lib/native-admin-api";
 import {
   adminUpdateShopPlan,
@@ -20,6 +21,11 @@ import { sendAdminPushAnnouncement } from "@/services/notification.service";
 
 type RouteContext = { params: Promise<{ section: string }> };
 
+function absoluteImageUrl(image: string | null | undefined, origin: string): string | null {
+  if (!image) return null;
+  return new URL(getImageUrl(image) || image, origin).toString();
+}
+
 export async function GET(request: Request, { params }: RouteContext) {
   const auth = await requireNativeAdmin(request);
   if (!auth.ok) return auth.response;
@@ -34,12 +40,21 @@ export async function GET(request: Request, { params }: RouteContext) {
       case "overview":
         return nativeAdminJson(await getAdminOverview());
       case "shops":
-        return nativeAdminJson(await getAdminShops({
-          q,
-          status: boundedEnum(url.searchParams.get("status"), ["ACTIVE", "DRAFT", "SUSPENDED"]),
-          plan: boundedEnum(url.searchParams.get("plan"), ["free", "pro", "pro_plus", "expired"]),
-          page,
-        }));
+        {
+          const result = await getAdminShops({
+            q,
+            status: boundedEnum(url.searchParams.get("status"), ["ACTIVE", "DRAFT", "SUSPENDED"]),
+            plan: boundedEnum(url.searchParams.get("plan"), ["free", "pro", "pro_plus", "expired"]),
+            page,
+          });
+          return nativeAdminJson({
+            ...result,
+            items: result.items.map((shop) => ({
+              ...shop,
+              logoUrl: absoluteImageUrl(shop.logoUrl, url.origin),
+            })),
+          });
+        }
       case "accounts":
         return nativeAdminJson(await getAdminAccounts({
           q,
@@ -54,11 +69,23 @@ export async function GET(request: Request, { params }: RouteContext) {
           page,
         }));
       case "subscriptions":
-        return nativeAdminJson(await getAdminSubscriptions({
-          q,
-          plan: boundedEnum(url.searchParams.get("plan"), ["all", "pro", "pro_plus", "expired"]),
-          page,
-        }));
+        {
+          const result = await getAdminSubscriptions({
+            q,
+            plan: boundedEnum(url.searchParams.get("plan"), ["all", "pro", "pro_plus", "expired"]),
+            page,
+          });
+          return nativeAdminJson({
+            ...result,
+            shops: {
+              ...result.shops,
+              items: result.shops.items.map((shop) => ({
+                ...shop,
+                logoUrl: absoluteImageUrl(shop.logoUrl, url.origin),
+              })),
+            },
+          });
+        }
       case "analytics": {
         const requestedDays = Number(url.searchParams.get("days"));
         const days = ([7, 28, 90, 365].includes(requestedDays) ? requestedDays : 28) as 7 | 28 | 90 | 365;

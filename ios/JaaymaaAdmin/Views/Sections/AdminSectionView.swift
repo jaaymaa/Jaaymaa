@@ -10,30 +10,36 @@ struct AdminSectionView: View {
     @State private var page = 1
 
     var body: some View {
+        Group {
+            if section.isSearchable {
+                sectionScrollView
+                    .searchable(text: $query, prompt: "Nom, gérant ou identifiant")
+                    .onSubmit(of: .search) {
+                        page = 1
+                        Task { await load() }
+                    }
+            } else {
+                sectionScrollView
+            }
+        }
+        .background(JaaymaStyle.paper.ignoresSafeArea())
+        .navigationTitle(section.title)
+        .navigationBarTitleDisplayMode(.large)
+        .task(id: section) {
+            page = 1
+            query = ""
+            await load()
+        }
+        .refreshable {
+            await load()
+        }
+    }
+
+    private var sectionScrollView: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
-                header
-
-                if section.isSearchable {
-                    HStack(spacing: 9) {
-                        Image(systemName: "magnifyingglass")
-                            .foregroundStyle(JaaymaStyle.muted)
-                        TextField("Rechercher…", text: $query)
-                            .textInputAutocapitalization(.never)
-                            .autocorrectionDisabled()
-                            .onSubmit {
-                                page = 1
-                                Task { await load() }
-                            }
-                        Button("Filtrer") {
-                            page = 1
-                            Task { await load() }
-                        }
-                        .font(.caption.weight(.bold))
-                        .foregroundStyle(JaaymaStyle.ink)
-                    }
-                    .padding(13)
-                    .background(.white.opacity(0.75), in: RoundedRectangle(cornerRadius: 15))
+                AdminBrandHeader(account: session.phone ?? "Compte administrateur") {
+                    Task { await session.signOut() }
                 }
 
                 if loading && data == nil {
@@ -85,40 +91,6 @@ struct AdminSectionView: View {
             .frame(maxWidth: 1100)
             .frame(maxWidth: .infinity)
         }
-        .background(JaaymaStyle.paper.ignoresSafeArea())
-        .navigationTitle(section.title)
-        .navigationBarTitleDisplayMode(.inline)
-        .task(id: section) {
-            page = 1
-            query = ""
-            await load()
-        }
-        .refreshable {
-            await load()
-        }
-    }
-
-    private var header: some View {
-        HStack(alignment: .center, spacing: 14) {
-            BrandMark(size: 44)
-            VStack(alignment: .leading, spacing: 3) {
-                Text("CENTRE DE PILOTAGE")
-                    .font(.caption2.weight(.heavy))
-                    .tracking(1.35)
-                    .foregroundStyle(JaaymaStyle.hibiscus)
-                Text(section.title)
-                    .font(.system(size: 24, weight: .bold, design: .rounded))
-                    .foregroundStyle(JaaymaStyle.ink)
-            }
-            Spacer(minLength: 0)
-            Image(systemName: section.symbol)
-                .font(.system(size: 18, weight: .bold))
-                .foregroundStyle(JaaymaStyle.ink)
-                .frame(width: 44, height: 44)
-                .background(JaaymaStyle.sun, in: RoundedRectangle(cornerRadius: 13))
-                .overlay(RoundedRectangle(cornerRadius: 13).stroke(JaaymaStyle.ink.opacity(0.12), lineWidth: 1))
-        }
-        .padding(.bottom, 4)
     }
 
     @ViewBuilder

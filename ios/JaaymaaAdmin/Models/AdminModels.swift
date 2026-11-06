@@ -62,6 +62,7 @@ struct AdminShop: Decodable, Identifiable {
     let id: String
     let name: String
     let slug: String
+    let logoUrl: String?
     let plan: String
     let planExpiresAt: String?
     let status: String
@@ -70,7 +71,7 @@ struct AdminShop: Decodable, Identifiable {
     let counts: ShopCounts
 
     enum CodingKeys: String, CodingKey {
-        case id, name, slug, plan, planExpiresAt, status, createdAt, owner
+        case id, name, slug, logoUrl, plan, planExpiresAt, status, createdAt, owner
         case counts = "_count"
     }
 }
