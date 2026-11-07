@@ -38,14 +38,22 @@ struct AdminSectionView: View {
     private var sectionScrollView: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
-                AdminBrandHeader(account: session.phone ?? "Compte administrateur") {
+                AdminBrandHeader(
+                    account: session.phone ?? "Compte administrateur",
+                    isLoading: loading && data != nil
+                ) {
                     Task { await session.signOut() }
                 }
 
                 if loading && data == nil {
-                    ProgressView("Chargement…")
+                    VStack(spacing: 16) {
+                        JaaymaLoader(variant: .main, size: 132, label: "Chargement des données")
+                        Text("On prépare ton espace…")
+                            .font(.subheadline.weight(.medium))
+                            .foregroundStyle(JaaymaStyle.paper.opacity(0.72))
+                    }
                         .frame(maxWidth: .infinity)
-                        .padding(40)
+                        .padding(.vertical, 44)
                 } else if let errorMessage {
                     ContentUnavailableView(
                         "Chargement impossible",

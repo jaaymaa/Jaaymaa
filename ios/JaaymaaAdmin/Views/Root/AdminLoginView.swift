@@ -67,7 +67,7 @@ struct AdminLoginView: View {
                     Button(action: signIn) {
                         HStack(spacing: 10) {
                             if isLoading {
-                                ProgressView().tint(JaaymaStyle.ink)
+                                JaaymaLoader(variant: .miniInk, size: 26)
                             }
                             Text(isLoading ? "Connexion…" : "Se connecter")
                         }

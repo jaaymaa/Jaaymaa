@@ -2,6 +2,7 @@ import SwiftUI
 
 struct AdminBrandHeader: View {
     let account: String
+    var isLoading = false
     let onSignOut: () -> Void
 
     var body: some View {
@@ -20,6 +21,11 @@ struct AdminBrandHeader: View {
             }
 
             Spacer(minLength: 12)
+
+            if isLoading {
+                JaaymaLoader(variant: .mini, size: 32, label: "Actualisation des données")
+                    .padding(.trailing, 2)
+            }
 
             Menu {
                 Section("Session administrateur") {

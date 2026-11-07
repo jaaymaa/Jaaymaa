@@ -6,6 +6,7 @@ struct ShopListContent: View {
     var metrics: PlanMetrics? = nil
     let onUpdate: (String, [String: Any]) async throws -> Void
     @State private var actionError: String?
+    @State private var updatingShopId: String?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 15) {
@@ -43,7 +44,7 @@ struct ShopListContent: View {
                     .padding(.vertical, 18)
                 } else {
                     ForEach(page.items) { shop in
-                        ShopListRow(shop: shop) { changes in
+                        ShopListRow(shop: shop, isUpdating: updatingShopId == shop.id) { changes in
                             update(shop, changes)
                         }
                     }
@@ -62,7 +63,10 @@ struct ShopListContent: View {
     }
 
     private func update(_ shop: AdminShop, _ values: [String: Any]) {
+        guard updatingShopId == nil else { return }
+        updatingShopId = shop.id
         Task {
+            defer { updatingShopId = nil }
             do {
                 try await onUpdate(shop.id, values)
                 actionError = nil
@@ -75,6 +79,7 @@ struct ShopListContent: View {
 
 private struct ShopListRow: View {
     let shop: AdminShop
+    let isUpdating: Bool
     let onUpdate: ([String: Any]) -> Void
 
     private var isFreePlan: Bool { shop.plan.lowercased() == "free" }
@@ -123,7 +128,16 @@ private struct ShopListRow: View {
                         Button("Remettre en brouillon") { onUpdate(["status": "DRAFT"]) }
                     }
                 } label: {
-                    Label(isFreePlan ? "Activer Pro" : "Gérer le forfait", systemImage: "sparkles")
+                    Group {
+                        if isUpdating {
+                            HStack(spacing: 7) {
+                                JaaymaLoader(variant: .miniInk, size: 24)
+                                Text("Mise à jour")
+                            }
+                        } else {
+                            Label(isFreePlan ? "Activer Pro" : "Gérer le forfait", systemImage: "sparkles")
+                        }
+                    }
                         .font(.system(size: 12, weight: .bold, design: .rounded))
                         .lineLimit(1)
                         .minimumScaleFactor(0.85)
@@ -137,21 +151,34 @@ private struct ShopListRow: View {
                         }
                         .overlay(Capsule().stroke(JaaymaStyle.ink, lineWidth: 2))
                 }
-                .accessibilityLabel(isFreePlan ? "Activer Pro pour \(shop.name)" : "Gérer le forfait de \(shop.name)")
+                .accessibilityLabel(
+                    isUpdating
+                        ? "Mise à jour de \(shop.name)"
+                        : isFreePlan ? "Activer Pro pour \(shop.name)" : "Gérer le forfait de \(shop.name)"
+                )
+                .disabled(isUpdating)
 
                 Spacer(minLength: 0)
 
                 Button {
                     onUpdate(["status": shop.status == "ACTIVE" ? "SUSPENDED" : "ACTIVE"])
                 } label: {
-                    Text(statusActionTitle)
-                        .font(.system(size: 12, weight: .bold, design: .rounded))
-                        .foregroundStyle(shop.status == "ACTIVE" ? JaaymaStyle.hibiscus : JaaymaStyle.green)
-                        .lineLimit(1)
-                        .padding(.vertical, 8)
-                        .contentShape(Rectangle())
+                    Group {
+                        if isUpdating {
+                            JaaymaLoader(variant: .miniInk, size: 24)
+                        } else {
+                            Text(statusActionTitle)
+                                .font(.system(size: 12, weight: .bold, design: .rounded))
+                                .foregroundStyle(shop.status == "ACTIVE" ? JaaymaStyle.hibiscus : JaaymaStyle.green)
+                        }
+                    }
+                    .lineLimit(1)
+                    .padding(.vertical, 8)
+                    .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
+                .disabled(isUpdating)
+                .accessibilityLabel(isUpdating ? "Mise à jour de \(shop.name)" : statusActionTitle)
             }
         }
         .padding(13)
