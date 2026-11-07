@@ -11,8 +11,15 @@ struct AdminMoreView: View {
                     Task { await session.signOut() }
                 }
 
-                SectionCard(title: "Gestion avancée", subtitle: "Rubriques d’administration") {
+                SectionCard(
+                    title: "Gestion avancée",
+                    subtitle: "Rubriques d’administration",
+                    symbol: "square.grid.2x2.fill",
+                    accent: JaaymaStyle.sun
+                ) {
                     ForEach(sections) { section in
+                        JaaymaRowDivider(leadingInset: 0)
+
                         NavigationLink {
                             AdminSectionView(section: section)
                         } label: {
@@ -21,7 +28,8 @@ struct AdminMoreView: View {
                                     .font(.system(size: 16, weight: .bold))
                                     .foregroundStyle(JaaymaStyle.ink)
                                     .frame(width: 42, height: 42)
-                                    .background(JaaymaStyle.sun.opacity(0.4), in: RoundedRectangle(cornerRadius: 12))
+                                    .background(sectionAccent(section).opacity(0.3), in: RoundedRectangle(cornerRadius: 12))
+                                    .overlay(RoundedRectangle(cornerRadius: 12).stroke(JaaymaStyle.ink.opacity(0.12), lineWidth: 1))
 
                                 VStack(alignment: .leading, spacing: 3) {
                                     Text(section.title)
@@ -35,11 +43,16 @@ struct AdminMoreView: View {
                                 Spacer(minLength: 0)
 
                                 Image(systemName: "chevron.right")
-                                    .font(.caption.weight(.bold))
+                                    .font(.system(size: 11, weight: .bold))
                                     .foregroundStyle(JaaymaStyle.muted)
+                                    .frame(width: 28, height: 28)
+                                    .background(JaaymaStyle.ink.opacity(0.06), in: Circle())
                             }
-                            .padding(.vertical, 4)
+                            .padding(.vertical, 8)
+                            .contentShape(Rectangle())
                         }
+                        .buttonStyle(JaaymaInteractiveButtonStyle())
+                        .hoverEffect(.highlight)
                     }
                 }
             }
@@ -60,6 +73,16 @@ struct AdminMoreView: View {
         case .notifications: return "Envoi d’annonces push aux vendeurs"
         case .settings: return "Paramètres de la plateforme et tarifs"
         default: return ""
+        }
+    }
+
+    private func sectionAccent(_ section: AdminSection) -> Color {
+        switch section {
+        case .subscriptions: return JaaymaStyle.sun
+        case .analytics: return JaaymaStyle.mist
+        case .notifications: return JaaymaStyle.hibiscus
+        case .settings: return JaaymaStyle.green
+        default: return JaaymaStyle.sun
         }
     }
 }

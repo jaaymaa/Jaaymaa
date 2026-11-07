@@ -42,31 +42,49 @@ struct OverviewContent: View {
             MiniStat(title: "À traiter", value: value.metrics.newOrders, color: JaaymaStyle.ink)
         }
 
-        SectionCard(title: "Commandes récentes", subtitle: "Activité de la plateforme") {
+        SectionCard(
+            title: "Commandes récentes",
+            subtitle: "Activité de la plateforme",
+            symbol: "bag.fill",
+            accent: JaaymaStyle.sun
+        ) {
             if value.recentOrders.isEmpty {
                 Text("Aucune commande pour le moment.")
                     .font(.subheadline)
                     .foregroundStyle(JaaymaStyle.muted)
             } else {
                 ForEach(value.recentOrders) { order in
-                    HStack(spacing: 12) {
-                        Image(systemName: "bag")
-                            .foregroundStyle(JaaymaStyle.ink)
-                            .padding(11)
-                            .background(JaaymaStyle.sun.opacity(0.35), in: RoundedRectangle(cornerRadius: 12))
-                        VStack(alignment: .leading, spacing: 3) {
-                            Text(order.customerName)
-                                .font(.subheadline.weight(.bold))
-                            Text("\(order.shop.name) · \(order.reference)")
-                                .font(.caption)
-                                .foregroundStyle(JaaymaStyle.muted)
+                    VStack(spacing: 11) {
+                        JaaymaRowDivider(leadingInset: 0)
+
+                        HStack(spacing: 11) {
+                            Image(systemName: "bag.fill")
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundStyle(JaaymaStyle.ink)
+                                .frame(width: 40, height: 40)
+                                .background(JaaymaStyle.sun.opacity(0.48), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(order.customerName)
+                                    .font(.subheadline.weight(.bold))
+                                    .foregroundStyle(JaaymaStyle.ink)
+                                    .lineLimit(1)
+                                Text("\(order.shop.name) · \(order.reference)")
+                                    .font(.caption)
+                                    .foregroundStyle(JaaymaStyle.muted)
+                                    .lineLimit(1)
+                            }
+
+                            Spacer(minLength: 6)
+
+                            Text(formatFcfa(order.total))
+                                .font(.system(size: 12, weight: .bold, design: .rounded).monospacedDigit())
+                                .foregroundStyle(JaaymaStyle.ink)
+                                .multilineTextAlignment(.trailing)
+                                .lineLimit(2)
                         }
-                        Spacer()
-                        Text(formatFcfa(order.total))
-                            .font(.subheadline.weight(.heavy))
-                            .foregroundStyle(JaaymaStyle.ink)
                     }
-                    .padding(.vertical, 4)
+                    .padding(.top, 2)
                 }
             }
         }

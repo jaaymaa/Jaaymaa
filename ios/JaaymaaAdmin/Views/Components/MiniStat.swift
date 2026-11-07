@@ -1,31 +1,34 @@
 import SwiftUI
 
 struct MiniStat: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     let title: String
     let value: Int
     let color: Color
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: 5) {
             Text("\(value)")
-                .font(.title3.weight(.black))
-                .foregroundStyle(color)
+                .font(.system(size: 23, weight: .bold, design: .rounded).monospacedDigit())
+                .foregroundStyle(JaaymaStyle.ink)
+                .contentTransition(.numericText())
+
             Text(title)
-                .font(.caption2.weight(.semibold))
+                .font(.system(size: 10, weight: .semibold, design: .rounded))
                 .foregroundStyle(JaaymaStyle.muted)
+                .lineLimit(2)
+                .fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(13)
-        .background {
-            RoundedRectangle(cornerRadius: 17, style: .continuous)
-                .fill(JaaymaStyle.paper)
-                .shadow(color: JaaymaStyle.cardShadow, radius: 0, x: 2, y: 3)
+        .padding(12)
+        .overlay(alignment: .topLeading) {
+            Capsule()
+                .fill(color)
+                .frame(width: 26, height: 3)
+                .padding(.leading, 12)
+                .padding(.top, 7)
         }
-        .overlay {
-            RoundedRectangle(cornerRadius: 17, style: .continuous)
-                .stroke(JaaymaStyle.ink, lineWidth: 2)
-        }
-        .environment(\.colorScheme, .light)
+        .jaaymaCard(radius: 19, accent: color)
+        .animation(reduceMotion ? nil : .snappy(duration: 0.25), value: value)
     }
 }
-

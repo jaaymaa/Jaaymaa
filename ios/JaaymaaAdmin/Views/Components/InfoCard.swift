@@ -6,10 +6,11 @@ struct InfoCard: View {
     let symbol: String
 
     var body: some View {
-        SectionCard(title: title) {
-            Label(detail, systemImage: symbol)
+        SectionCard(title: title, symbol: symbol, accent: JaaymaStyle.hibiscus) {
+            Text(detail)
                 .font(.subheadline)
                 .foregroundStyle(JaaymaStyle.muted)
+                .fixedSize(horizontal: false, vertical: true)
         }
     }
 }

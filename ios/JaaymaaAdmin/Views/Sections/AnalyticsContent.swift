@@ -36,19 +36,48 @@ struct AnalyticsContent: View {
                 )
             }
 
-            SectionCard(title: "Pages les plus consultées") {
-                ForEach(value.topPages ?? []) { page in
-                    HStack {
-                        VStack(alignment: .leading) {
+            let pages = value.topPages ?? []
+            let maximumViews = max(pages.map(\.views).max() ?? 1, 1)
+
+            SectionCard(
+                title: "Pages les plus consultées",
+                subtitle: "Popularité sur la période",
+                symbol: "chart.bar.xaxis",
+                accent: JaaymaStyle.mist
+            ) {
+                if pages.isEmpty {
+                    Text("Les pages consultées apparaîtront ici.")
+                        .font(.subheadline)
+                        .foregroundStyle(JaaymaStyle.muted)
+                }
+
+                ForEach(0..<min(pages.count, 6), id: \.self) { index in
+                    let page = pages[index]
+
+                    HStack(spacing: 11) {
+                        Text("\(index + 1)")
+                            .font(.system(size: 11, weight: .bold, design: .rounded).monospacedDigit())
+                            .foregroundStyle(JaaymaStyle.muted)
+                            .frame(width: 18, alignment: .leading)
+
+                        VStack(alignment: .leading, spacing: 6) {
                             Text(page.title.isEmpty ? page.path : page.title)
                                 .font(.subheadline.weight(.bold))
+                                .foregroundStyle(JaaymaStyle.ink)
+                                .lineLimit(1)
                             Text(page.path)
-                                .font(.caption)
+                                .font(.caption2)
                                 .foregroundStyle(JaaymaStyle.muted)
+                                .lineLimit(1)
+                            ProgressView(value: Double(page.views), total: Double(maximumViews))
+                                .tint(JaaymaStyle.sun)
+                                .scaleEffect(y: 0.8, anchor: .center)
                         }
-                        Spacer()
+
                         Text("\(page.views)")
-                            .font(.headline.weight(.heavy))
+                            .font(.system(size: 14, weight: .bold, design: .rounded).monospacedDigit())
+                            .foregroundStyle(JaaymaStyle.ink)
+                            .frame(minWidth: 34, alignment: .trailing)
                     }
                     .padding(.vertical, 4)
                 }

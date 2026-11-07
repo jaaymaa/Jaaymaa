@@ -2,6 +2,7 @@ import SwiftUI
 
 struct AdminSectionView: View {
     @EnvironmentObject private var session: AdminSessionStore
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     let section: AdminSection
     @State private var data: AdminSectionData?
     @State private var errorMessage: String?
@@ -55,44 +56,78 @@ struct AdminSectionView: View {
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 44)
                 } else if let errorMessage {
-                    ContentUnavailableView(
-                        "Chargement impossible",
-                        systemImage: "wifi.exclamationmark",
-                        description: Text(errorMessage)
-                    )
-                    Button {
-                        Task { await load() }
-                    } label: {
-                        Label("Réessayer", systemImage: "arrow.clockwise")
-                            .frame(maxWidth: .infinity)
+                    SectionCard(
+                        title: "Chargement interrompu",
+                        subtitle: "Jaaymaa n’a pas pu actualiser cette page",
+                        symbol: "wifi.exclamationmark",
+                        accent: JaaymaStyle.hibiscus
+                    ) {
+                        Text(errorMessage)
+                            .font(.subheadline)
+                            .foregroundStyle(JaaymaStyle.muted)
+                            .fixedSize(horizontal: false, vertical: true)
+
+                        Button {
+                            Task { await load() }
+                        } label: {
+                            Label("Réessayer", systemImage: "arrow.clockwise")
+                                .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(JaaymaPrimaryButtonStyle())
                     }
-                    .buttonStyle(JaaymaPrimaryButtonStyle())
                 } else if let data {
                     content(data)
-                    if let pageInfo = data.pageInfo {
-                        HStack {
-                            Button("Précédent") {
+                    if let pageInfo = data.pageInfo, pageInfo.total > 1 {
+                        HStack(spacing: 12) {
+                            Button {
                                 page = max(1, page - 1)
                                 Task { await load() }
+                            } label: {
+                                Image(systemName: "chevron.left")
+                                    .font(.system(size: 13, weight: .bold))
+                                    .foregroundStyle(pageInfo.current <= 1 ? JaaymaStyle.paper.opacity(0.35) : JaaymaStyle.sun)
+                                    .frame(width: 38, height: 38)
+                                    .background(JaaymaStyle.paper.opacity(0.08), in: Circle())
                             }
+                            .buttonStyle(JaaymaInteractiveButtonStyle())
                             .disabled(pageInfo.current <= 1)
+                            .accessibilityLabel("Page précédente")
 
                             Spacer()
 
-                            Text("Page \(pageInfo.current) sur \(pageInfo.total)")
-                                .font(.caption.weight(.semibold))
-                                .foregroundStyle(JaaymaStyle.muted)
+                            VStack(spacing: 2) {
+                                Text("PAGE \(pageInfo.current)")
+                                    .font(.system(size: 11, weight: .bold, design: .rounded).monospacedDigit())
+                                    .tracking(0.8)
+                                    .foregroundStyle(JaaymaStyle.paper)
+                                    .contentTransition(.numericText())
+                                Text("sur \(pageInfo.total)")
+                                    .font(.caption2.weight(.medium))
+                                    .foregroundStyle(JaaymaStyle.paper.opacity(0.56))
+                            }
 
                             Spacer()
 
-                            Button("Suivante") {
+                            Button {
                                 page = min(pageInfo.total, page + 1)
                                 Task { await load() }
+                            } label: {
+                                Image(systemName: "chevron.right")
+                                    .font(.system(size: 13, weight: .bold))
+                                    .foregroundStyle(pageInfo.current >= pageInfo.total ? JaaymaStyle.paper.opacity(0.35) : JaaymaStyle.sun)
+                                    .frame(width: 38, height: 38)
+                                    .background(JaaymaStyle.paper.opacity(0.08), in: Circle())
                             }
+                            .buttonStyle(JaaymaInteractiveButtonStyle())
                             .disabled(pageInfo.current >= pageInfo.total)
+                            .accessibilityLabel("Page suivante")
                         }
-                        .buttonStyle(.bordered)
-                        .tint(JaaymaStyle.sun)
+                        .padding(.horizontal, 9)
+                        .padding(.vertical, 7)
+                        .background(JaaymaStyle.nightPanel.opacity(0.8), in: Capsule())
+                        .overlay(Capsule().stroke(JaaymaStyle.paper.opacity(0.12), lineWidth: 1))
+                        .animation(reduceMotion ? nil : .snappy(duration: 0.22), value: pageInfo.current)
+                        .sensoryFeedback(.selection, trigger: page)
                     }
                 }
             }

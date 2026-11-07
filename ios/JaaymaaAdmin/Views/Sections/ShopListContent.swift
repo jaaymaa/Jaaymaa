@@ -7,6 +7,8 @@ struct ShopListContent: View {
     let onUpdate: (String, [String: Any]) async throws -> Void
     @State private var actionError: String?
     @State private var updatingShopId: String?
+    @State private var completedUpdates = 0
+    @State private var didFailUpdate = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 15) {
@@ -23,16 +25,14 @@ struct ShopListContent: View {
             }
 
             VStack(alignment: .leading, spacing: 12) {
-                HStack(alignment: .firstTextBaseline) {
+                HStack(alignment: .center) {
                     Text(subscriptionsOnly ? "Forfaits des boutiques" : "Toutes les boutiques")
                         .font(.system(size: 18, weight: .heavy, design: .rounded))
                         .foregroundStyle(JaaymaStyle.paper)
 
                     Spacer(minLength: 8)
 
-                    Text("\(page.total) au total")
-                        .font(.caption.weight(.medium))
-                        .foregroundStyle(JaaymaStyle.paper.opacity(0.62))
+                    JaaymaStatusBadge(title: "\(page.total) au total", tint: JaaymaStyle.sun, symbol: "storefront")
                 }
 
                 if page.items.isEmpty {
@@ -51,38 +51,57 @@ struct ShopListContent: View {
                 }
 
                 if let actionError {
-                    Label(actionError, systemImage: "exclamationmark.circle.fill")
-                        .font(.caption.weight(.semibold))
+                    HStack(alignment: .top, spacing: 8) {
+                        Image(systemName: "exclamationmark.circle.fill")
+                            .font(.system(size: 13, weight: .semibold))
+                        Text(actionError)
+                            .font(.caption.weight(.semibold))
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
                         .foregroundStyle(JaaymaStyle.hibiscus)
                         .padding(11)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .background(JaaymaStyle.hibiscus.opacity(0.12), in: RoundedRectangle(cornerRadius: 14))
+                        .overlay(RoundedRectangle(cornerRadius: 14).stroke(JaaymaStyle.hibiscus.opacity(0.22), lineWidth: 1))
                 }
             }
         }
+        .sensoryFeedback(.success, trigger: completedUpdates)
+        .sensoryFeedback(.error, trigger: didFailUpdate)
     }
 
     private func update(_ shop: AdminShop, _ values: [String: Any]) {
         guard updatingShopId == nil else { return }
         updatingShopId = shop.id
+        didFailUpdate = false
         Task {
             defer { updatingShopId = nil }
             do {
                 try await onUpdate(shop.id, values)
                 actionError = nil
+                completedUpdates += 1
             } catch {
                 actionError = error.localizedDescription
+                didFailUpdate = true
             }
         }
     }
 }
 
 private struct ShopListRow: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     let shop: AdminShop
     let isUpdating: Bool
     let onUpdate: ([String: Any]) -> Void
 
     private var isFreePlan: Bool { shop.plan.lowercased() == "free" }
+    private var planAccent: Color {
+        switch shop.plan.lowercased() {
+        case "pro_plus": return JaaymaStyle.sun
+        case "pro": return JaaymaStyle.green
+        default: return JaaymaStyle.mist
+        }
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 11) {
@@ -100,11 +119,13 @@ private struct ShopListRow: View {
                         .foregroundStyle(JaaymaStyle.muted)
                         .lineLimit(1)
 
-                    Text("\(shop.counts.products) produits · \(shop.counts.orders) commandes")
-                        .font(.system(size: 11.5, weight: .medium))
-                        .foregroundStyle(JaaymaStyle.muted)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.85)
+                    HStack(spacing: 9) {
+                        Label("\(shop.counts.products)", systemImage: "shippingbox")
+                        Label("\(shop.counts.orders)", systemImage: "bag")
+                    }
+                    .font(.system(size: 10, weight: .medium, design: .rounded).monospacedDigit())
+                    .foregroundStyle(JaaymaStyle.muted)
+                    .lineLimit(1)
                 }
 
                 Spacer(minLength: 2)
@@ -151,6 +172,7 @@ private struct ShopListRow: View {
                         }
                         .overlay(Capsule().stroke(JaaymaStyle.ink, lineWidth: 2))
                 }
+                .buttonStyle(JaaymaInteractiveButtonStyle())
                 .accessibilityLabel(
                     isUpdating
                         ? "Mise à jour de \(shop.name)"
@@ -167,32 +189,27 @@ private struct ShopListRow: View {
                         if isUpdating {
                             JaaymaLoader(variant: .miniInk, size: 24)
                         } else {
-                            Text(statusActionTitle)
-                                .font(.system(size: 12, weight: .bold, design: .rounded))
+                            Label(statusActionTitle, systemImage: shop.status == "ACTIVE" ? "pause.fill" : "arrow.up.right")
+                                .font(.system(size: 11, weight: .bold, design: .rounded))
                                 .foregroundStyle(shop.status == "ACTIVE" ? JaaymaStyle.hibiscus : JaaymaStyle.green)
                         }
                     }
                     .lineLimit(1)
+                    .padding(.horizontal, 10)
                     .padding(.vertical, 8)
+                    .background(JaaymaStyle.paper.opacity(0.66), in: Capsule())
+                    .overlay(Capsule().stroke(JaaymaStyle.ink.opacity(0.13), lineWidth: 1))
                     .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(JaaymaInteractiveButtonStyle())
                 .disabled(isUpdating)
                 .accessibilityLabel(isUpdating ? "Mise à jour de \(shop.name)" : statusActionTitle)
             }
         }
         .padding(13)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background {
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .fill(JaaymaStyle.paper)
-                .shadow(color: JaaymaStyle.cardShadow, radius: 0, x: 2, y: 4)
-        }
-        .overlay {
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .stroke(JaaymaStyle.ink, lineWidth: 2.5)
-        }
-        .environment(\.colorScheme, .light)
+        .jaaymaCard(radius: 22, accent: planAccent)
+        .animation(reduceMotion ? nil : .snappy(duration: 0.22), value: isUpdating)
     }
 
     private var ownerLabel: String {

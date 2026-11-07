@@ -13,10 +13,19 @@ struct AdminShellView: View {
                     List(selection: $sidebarSelection) {
                         Section("Plateforme") {
                             ForEach(AdminSection.allCases) { section in
-                                Label(section.title, systemImage: section.symbol).tag(section)
+                                Label(section.title, systemImage: section.symbol)
+                                    .tag(section)
+                                    .padding(.vertical, 3)
+                                    .listRowBackground(
+                                        sidebarSelection == section
+                                            ? JaaymaStyle.nightPanel.opacity(0.92)
+                                            : Color.clear
+                                    )
+                                    .listRowSeparatorTint(JaaymaStyle.paper.opacity(0.1))
                             }
                         }
                     }
+                    .listStyle(.sidebar)
                     .scrollContentBackground(.hidden)
                     .background(JaaymaStyle.night)
                     .navigationTitle("Jaaymaa Admin")
