@@ -74,13 +74,11 @@ struct SettingsContent: View {
                 .keyboardType(.numberPad)
                 .padding(13)
                 .background(Color.white.opacity(0.72), in: RoundedRectangle(cornerRadius: 15, style: .continuous))
-                .overlay(RoundedRectangle(cornerRadius: 15, style: .continuous).stroke(JaaymaStyle.ink.opacity(0.15), lineWidth: 1))
                 .tint(JaaymaStyle.hibiscus)
             TextField("Tarif Pro+", text: $proPlusPriceText)
                 .keyboardType(.numberPad)
                 .padding(13)
                 .background(Color.white.opacity(0.72), in: RoundedRectangle(cornerRadius: 15, style: .continuous))
-                .overlay(RoundedRectangle(cornerRadius: 15, style: .continuous).stroke(JaaymaStyle.ink.opacity(0.15), lineWidth: 1))
                 .tint(JaaymaStyle.hibiscus)
 
             Button {

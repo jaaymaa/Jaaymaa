@@ -22,20 +22,19 @@ struct SectionCard<Content: View>: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 17) {
-            HStack(spacing: 11) {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack(spacing: 10) {
                 if let symbol {
                     Image(systemName: symbol)
-                        .font(.system(size: 15, weight: .bold))
+                        .font(.system(size: 13, weight: .semibold))
                         .foregroundStyle(JaaymaStyle.ink)
-                        .frame(width: 38, height: 38)
-                        .background(accent.opacity(0.42), in: RoundedRectangle(cornerRadius: 13, style: .continuous))
-                        .overlay(RoundedRectangle(cornerRadius: 13, style: .continuous).stroke(JaaymaStyle.ink.opacity(0.13), lineWidth: 1))
+                        .frame(width: 32, height: 32)
+                        .background(accent.opacity(0.22), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
                 }
 
                 VStack(alignment: .leading, spacing: 3) {
                     Text(title)
-                        .font(.system(size: 18, weight: .bold, design: .rounded))
+                        .font(.system(size: 17, weight: .semibold, design: .rounded))
                         .foregroundStyle(JaaymaStyle.ink)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityAddTraits(.isHeader)
@@ -51,9 +50,9 @@ struct SectionCard<Content: View>: View {
 
             content
         }
-        .padding(18)
+        .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .jaaymaCard(radius: 24, accent: accent)
+        .jaaymaCard(radius: 21)
     }
 }
 

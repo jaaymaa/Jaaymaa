@@ -62,7 +62,6 @@ struct ShopListContent: View {
                         .padding(11)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .background(JaaymaStyle.hibiscus.opacity(0.12), in: RoundedRectangle(cornerRadius: 14))
-                        .overlay(RoundedRectangle(cornerRadius: 14).stroke(JaaymaStyle.hibiscus.opacity(0.22), lineWidth: 1))
                 }
             }
         }
@@ -95,13 +94,6 @@ private struct ShopListRow: View {
     let onUpdate: ([String: Any]) -> Void
 
     private var isFreePlan: Bool { shop.plan.lowercased() == "free" }
-    private var planAccent: Color {
-        switch shop.plan.lowercased() {
-        case "pro_plus": return JaaymaStyle.sun
-        case "pro": return JaaymaStyle.green
-        default: return JaaymaStyle.mist
-        }
-    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 11) {
@@ -165,12 +157,7 @@ private struct ShopListRow: View {
                         .foregroundStyle(JaaymaStyle.ink)
                         .padding(.horizontal, 11)
                         .padding(.vertical, 8)
-                        .background {
-                            Capsule()
-                                .fill(JaaymaStyle.sun)
-                                .shadow(color: JaaymaStyle.cardShadow, radius: 0, x: 1, y: 2)
-                        }
-                        .overlay(Capsule().stroke(JaaymaStyle.ink, lineWidth: 2))
+                        .background(JaaymaStyle.sun.opacity(0.34), in: Capsule())
                 }
                 .buttonStyle(JaaymaInteractiveButtonStyle())
                 .accessibilityLabel(
@@ -197,8 +184,10 @@ private struct ShopListRow: View {
                     .lineLimit(1)
                     .padding(.horizontal, 10)
                     .padding(.vertical, 8)
-                    .background(JaaymaStyle.paper.opacity(0.66), in: Capsule())
-                    .overlay(Capsule().stroke(JaaymaStyle.ink.opacity(0.13), lineWidth: 1))
+                    .background(
+                        (shop.status == "ACTIVE" ? JaaymaStyle.hibiscus : JaaymaStyle.green).opacity(0.1),
+                        in: Capsule()
+                    )
                     .contentShape(Rectangle())
                 }
                 .buttonStyle(JaaymaInteractiveButtonStyle())
@@ -208,7 +197,7 @@ private struct ShopListRow: View {
         }
         .padding(13)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .jaaymaCard(radius: 22, accent: planAccent)
+        .jaaymaCard(radius: 20)
         .animation(reduceMotion ? nil : .snappy(duration: 0.22), value: isUpdating)
     }
 
@@ -240,14 +229,18 @@ private struct ShopPlanBadge: View {
 
     private var fill: Color {
         switch plan.lowercased() {
-        case "pro_plus": return JaaymaStyle.sun
-        case "pro": return JaaymaStyle.green
-        default: return JaaymaStyle.mist
+        case "pro_plus": return JaaymaStyle.sun.opacity(0.17)
+        case "pro": return JaaymaStyle.green.opacity(0.12)
+        default: return JaaymaStyle.mist.opacity(0.72)
         }
     }
 
     private var foreground: Color {
-        plan.lowercased() == "pro" ? .white : JaaymaStyle.ink
+        switch plan.lowercased() {
+        case "pro": return JaaymaStyle.green
+        case "pro_plus": return JaaymaStyle.ink
+        default: return JaaymaStyle.muted
+        }
     }
 
     var body: some View {
@@ -284,8 +277,6 @@ private struct ShopStatusStamp: View {
             .padding(.vertical, 4)
             .foregroundStyle(tint)
             .background(tint.opacity(0.08), in: RoundedRectangle(cornerRadius: 6))
-            .overlay(RoundedRectangle(cornerRadius: 6).stroke(tint, lineWidth: 1.25))
-            .rotationEffect(.degrees(-2))
     }
 }
 
@@ -303,23 +294,15 @@ private struct ShopLogoView: View {
                 fallback
             }
         }
-        .frame(width: 54, height: 54)
+        .frame(width: 48, height: 48)
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-        .background {
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(JaaymaStyle.sun)
-                .shadow(color: JaaymaStyle.cardShadow, radius: 0, x: 1, y: 2)
-        }
-        .overlay {
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .stroke(JaaymaStyle.ink, lineWidth: 2)
-        }
+        .background(JaaymaStyle.sun.opacity(0.18), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
         .accessibilityLabel("Logo de \(name)")
     }
 
     private var fallback: some View {
         Text(monogram)
-            .font(.system(size: 18, weight: .heavy, design: .rounded))
+            .font(.system(size: 16, weight: .semibold, design: .rounded))
             .foregroundStyle(JaaymaStyle.ink)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(JaaymaStyle.sun)

@@ -125,7 +125,6 @@ struct AdminSectionView: View {
                         .padding(.horizontal, 9)
                         .padding(.vertical, 7)
                         .background(JaaymaStyle.nightPanel.opacity(0.8), in: Capsule())
-                        .overlay(Capsule().stroke(JaaymaStyle.paper.opacity(0.12), lineWidth: 1))
                         .animation(reduceMotion ? nil : .snappy(duration: 0.22), value: pageInfo.current)
                         .sensoryFeedback(.selection, trigger: page)
                     }

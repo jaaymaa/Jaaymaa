@@ -9,41 +9,38 @@ struct MetricTile: View {
     let tint: Color
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 11) {
-            HStack(alignment: .center, spacing: 10) {
-                Text(title.uppercased())
-                    .font(.caption2.weight(.heavy))
-                    .tracking(0.75)
+        VStack(alignment: .leading, spacing: 9) {
+            HStack(alignment: .center, spacing: 8) {
+                Text(title)
+                    .font(.system(size: 12, weight: .semibold, design: .rounded))
                     .foregroundStyle(JaaymaStyle.muted)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.82)
+                    .lineLimit(2)
 
-                Spacer(minLength: 4)
+                Spacer(minLength: 2)
 
                 Image(systemName: symbol)
-                    .font(.system(size: 14, weight: .bold))
+                    .font(.system(size: 13, weight: .semibold))
                     .foregroundStyle(JaaymaStyle.ink)
-                    .frame(width: 36, height: 36)
-                    .background(tint.opacity(0.56), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-                    .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(JaaymaStyle.ink.opacity(0.13), lineWidth: 1))
+                    .frame(width: 32, height: 32)
+                    .background(tint.opacity(0.25), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
             }
 
             Text(value)
-                .font(.system(size: 29, weight: .bold, design: .rounded).monospacedDigit())
+                .font(.system(size: 25, weight: .semibold, design: .rounded).monospacedDigit())
                 .foregroundStyle(JaaymaStyle.ink)
                 .lineLimit(1)
-                .minimumScaleFactor(0.58)
+                .minimumScaleFactor(0.65)
                 .contentTransition(.numericText())
 
             Text(note)
-                .font(.caption2.weight(.medium))
+                .font(.system(size: 11, weight: .medium, design: .rounded))
                 .foregroundStyle(JaaymaStyle.muted)
                 .lineLimit(2)
                 .fixedSize(horizontal: false, vertical: true)
         }
-        .padding(15)
+        .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .jaaymaCard(radius: 22, accent: tint)
+        .jaaymaCard(radius: 20)
         .animation(reduceMotion ? nil : .snappy(duration: 0.25), value: value)
     }
 }

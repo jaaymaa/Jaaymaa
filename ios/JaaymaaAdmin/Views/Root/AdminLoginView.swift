@@ -47,7 +47,6 @@ struct AdminLoginView: View {
                         .tint(JaaymaStyle.ink)
                         .padding(16)
                         .background(JaaymaStyle.paper, in: RoundedRectangle(cornerRadius: 15))
-                        .overlay(RoundedRectangle(cornerRadius: 15).stroke(JaaymaStyle.ink, lineWidth: 2))
 
                     SecureField("Mot de passe", text: $password)
                         .textContentType(.password)
@@ -55,7 +54,6 @@ struct AdminLoginView: View {
                         .tint(JaaymaStyle.ink)
                         .padding(16)
                         .background(JaaymaStyle.paper, in: RoundedRectangle(cornerRadius: 15))
-                        .overlay(RoundedRectangle(cornerRadius: 15).stroke(JaaymaStyle.ink, lineWidth: 2))
 
                     if let message {
                         Text(message)
@@ -77,16 +75,7 @@ struct AdminLoginView: View {
                     .disabled(isLoading || phone.isEmpty || password.isEmpty)
                 }
                 .padding(18)
-                .background {
-                    RoundedRectangle(cornerRadius: 24, style: .continuous)
-                        .fill(JaaymaStyle.paper)
-                        .shadow(color: JaaymaStyle.cardShadow, radius: 0, x: 3, y: 5)
-                }
-                .overlay {
-                    RoundedRectangle(cornerRadius: 24, style: .continuous)
-                        .stroke(JaaymaStyle.ink, lineWidth: 2.5)
-                }
-                .environment(\.colorScheme, .light)
+                .jaaymaCard(radius: 24)
 
                 Spacer(minLength: 0)
 

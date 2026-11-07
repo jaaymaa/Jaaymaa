@@ -45,7 +45,6 @@ struct AdminBrandHeader: View {
                     .foregroundStyle(JaaymaStyle.paper)
                     .frame(width: 40, height: 40)
                     .background(.ultraThinMaterial, in: Circle())
-                    .overlay(Circle().stroke(JaaymaStyle.paper.opacity(0.15), lineWidth: 1))
             }
             .accessibilityLabel("Compte administrateur")
         }

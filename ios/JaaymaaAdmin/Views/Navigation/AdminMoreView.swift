@@ -29,7 +29,6 @@ struct AdminMoreView: View {
                                     .foregroundStyle(JaaymaStyle.ink)
                                     .frame(width: 42, height: 42)
                                     .background(sectionAccent(section).opacity(0.3), in: RoundedRectangle(cornerRadius: 12))
-                                    .overlay(RoundedRectangle(cornerRadius: 12).stroke(JaaymaStyle.ink.opacity(0.12), lineWidth: 1))
 
                                 VStack(alignment: .leading, spacing: 3) {
                                     Text(section.title)

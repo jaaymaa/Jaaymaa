@@ -32,10 +32,6 @@ struct AccountListContent: View {
                                 JaaymaStyle.hibiscus.opacity(0.15),
                                 in: RoundedRectangle(cornerRadius: 15, style: .continuous)
                             )
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 15, style: .continuous)
-                                    .stroke(JaaymaStyle.hibiscus.opacity(0.22), lineWidth: 1)
-                            )
 
                         VStack(alignment: .leading, spacing: 4) {
                             Text(account.name.isEmpty ? "Vendeur" : account.name)
@@ -51,9 +47,6 @@ struct AccountListContent: View {
 
                         Spacer(minLength: 4)
 
-                        Image(systemName: "person.crop.circle.fill")
-                            .font(.system(size: 17, weight: .medium))
-                            .foregroundStyle(JaaymaStyle.muted.opacity(0.72))
                     }
 
                     HStack(spacing: 8) {
