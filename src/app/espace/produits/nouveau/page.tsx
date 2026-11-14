@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getCurrentSellerContext } from "@/lib/auth";
-import { getEffectivePlan, getPhotoLimit } from "@/lib/plans";
+import { getEffectivePlan, getPhotoLimit, getVideoLimit } from "@/lib/plans";
 import ProductForm from "../ProductForm";
 
 export const metadata = {
@@ -13,5 +13,5 @@ export default async function NouveauProduitPage() {
   if (!sellerContext.shop) redirect("/espace/boutique");
 
   const plan = getEffectivePlan(sellerContext.shop.plan, sellerContext.shop.planExpiresAt);
-  return <ProductForm photoLimit={getPhotoLimit(plan)} />;
+  return <ProductForm photoLimit={getPhotoLimit(plan)} videoLimit={getVideoLimit(plan)} />;
 }

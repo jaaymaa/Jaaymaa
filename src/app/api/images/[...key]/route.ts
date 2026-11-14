@@ -30,19 +30,24 @@ export async function GET(
       return new NextResponse("Image introuvable", { status: 404 });
     }
 
-    const edgeCache = await getEdgeImageCache(request);
-    if (edgeCache) {
-      try {
-        const cached = await edgeCache.cache.match(edgeCache.cacheKey);
-        if (cached) {
-          return new NextResponse(cached.body, {
-            status: cached.status,
-            statusText: cached.statusText,
-            headers: cached.headers,
-          });
+    const rangeHeader = request.headers.get("range");
+
+    // Only use edge cache for non-range requests
+    if (!rangeHeader) {
+      const edgeCache = await getEdgeImageCache(request);
+      if (edgeCache) {
+        try {
+          const cached = await edgeCache.cache.match(edgeCache.cacheKey);
+          if (cached) {
+            return new NextResponse(cached.body, {
+              status: cached.status,
+              statusText: cached.statusText,
+              headers: cached.headers,
+            });
+          }
+        } catch {
+          // Cache miss
         }
-      } catch {
-        // Cache miss
       }
     }
 
@@ -53,14 +58,19 @@ export async function GET(
       return new NextResponse("Stockage média indisponible", { status: 503 });
     }
 
-    const object = await mediaBucket.get(key);
+    const object = await mediaBucket.get(
+      key,
+      rangeHeader ? { range: request.headers } : undefined
+    );
     if (!object) {
-      return new NextResponse("Image introuvable", { status: 404 });
+      return new NextResponse("Média introuvable", { status: 404 });
     }
 
     const headers = new Headers();
     object.writeHttpMetadata(headers as unknown as Headers);
     headers.set("etag", object.httpEtag);
+    headers.set("accept-ranges", "bytes");
+
     if (!headers.has("content-type")) {
       const ext = key.split(".").pop()?.toLowerCase();
       const mime =
@@ -70,21 +80,41 @@ export async function GET(
             ? "image/webp"
             : ext === "avif"
               ? "image/avif"
-              : "image/jpeg";
+              : ext === "mp4"
+                ? "video/mp4"
+                : ext === "webm"
+                  ? "video/webm"
+                  : ext === "mov"
+                    ? "video/quicktime"
+                    : "image/jpeg";
       headers.set("content-type", mime);
     }
     headers.set("cache-control", "public, max-age=31536000, immutable");
     headers.set("Cloudflare-CDN-Cache-Control", "public, max-age=31536000, immutable");
 
-    const response = new NextResponse(object.body as unknown as BodyInit, { headers });
+    const isRange = Boolean(rangeHeader && "range" in object && object.range);
+    const status = isRange ? 206 : 200;
+    if (isRange && "range" in object && object.range) {
+      const r = object.range as { offset: number; length: number };
+      headers.set("content-range", `bytes ${r.offset}-${r.offset + r.length - 1}/${object.size}`);
+      headers.set("content-length", String(r.length));
+    }
 
-    if (edgeCache) {
-      try {
-        edgeCache.ctx.waitUntil(
-          edgeCache.cache.put(edgeCache.cacheKey, response.clone()).catch(() => undefined)
-        );
-      } catch {
-        // Ignorer si cache put échoue
+    const response = new NextResponse(object.body as unknown as BodyInit, {
+      status,
+      headers,
+    });
+
+    if (!rangeHeader) {
+      const edgeCache = await getEdgeImageCache(request);
+      if (edgeCache) {
+        try {
+          edgeCache.ctx.waitUntil(
+            edgeCache.cache.put(edgeCache.cacheKey, response.clone()).catch(() => undefined)
+          );
+        } catch {
+          // Ignorer si cache put échoue
+        }
       }
     }
 

@@ -64,6 +64,7 @@ export const shops = sqliteTable(
     orangeMoneyNumber: text("orange_money_number"),
     acceptsCash: integer("accepts_cash", { mode: "boolean" }).notNull().default(true),
     deliveryFee: integer("delivery_fee").notNull().default(0), // XOF integer
+    deliveryZones: text("delivery_zones"), // JSON array of { id, name, fee }
     deliveryNote: text("delivery_note"),
     logoUrl: text("logo_url"), // R2 key or public URL
     coverUrl: text("cover_url"), // R2 key or public URL
@@ -104,6 +105,7 @@ export const products = sqliteTable(
     position: integer("position").notNull().default(0),
     status: text("status").notNull().default("ACTIVE"), // "DRAFT" | "ACTIVE" | "ARCHIVED"
     optionsJson: text("options_json"), // JSON string
+    videoKey: text("video_key"), // R2 key for Pro+ video (nullable)
     createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
     updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
   },
@@ -145,6 +147,7 @@ export const orders = sqliteTable(
     customerName: text("customer_name").notNull(),
     customerPhone: text("customer_phone").notNull(),
     deliveryAddress: text("delivery_address").notNull(),
+    deliveryZone: text("delivery_zone"),
     note: text("note"),
     paymentMethod: text("payment_method").notNull().default("cash"), // "cash" | "wave" | "orange_money"
     paymentStatus: text("payment_status").notNull().default("pending"), // "pending" | "paid" | "failed"

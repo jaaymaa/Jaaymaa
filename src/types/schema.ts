@@ -19,6 +19,8 @@ export interface Product {
   images?: ProductImage[];
   imageUrl?: string | null;
   imageUrls?: string[];
+  videoKey?: string | null;
+  videoUrl?: string | null;
   optionsJson?: string | null;
   createdAt?: string | number | Date;
   updatedAt?: string | number | Date;
@@ -43,6 +45,7 @@ export interface Shop {
   orangeMoneyNumber?: string | null;
   acceptsCash?: boolean;
   deliveryFee: number;
+  deliveryZones?: DeliveryZone[];
   deliveryNote?: string | null;
   logoUrl?: string | null;
   logoKey?: string | null;
@@ -60,6 +63,12 @@ export interface Shop {
   products?: Product[];
   createdAt?: string | number | Date;
   updatedAt?: string | number | Date;
+}
+
+export interface DeliveryZone {
+  id: string;
+  name: string;
+  fee: number;
 }
 
 export interface ProductOption {
@@ -92,6 +101,7 @@ export interface Order {
   paymentStatus?: string;
   subtotal: number;
   deliveryFee: number;
+  deliveryZone?: string | null;
   total: number;
   status: "NEW" | "CONFIRMED" | "PAID" | "PREPARING" | "OUT_FOR_DELIVERY" | "DELIVERED" | "CANCELLED" | string;
   items?: OrderItem[];

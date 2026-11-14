@@ -2,7 +2,7 @@ import { getCurrentSellerContext } from "@/lib/auth";
 import { notFound, redirect } from "next/navigation";
 import ProductForm from "../ProductForm";
 import { getProductById } from "@/services/product.service";
-import { getEffectivePlan, getPhotoLimit } from "@/lib/plans";
+import { getEffectivePlan, getPhotoLimit, getVideoLimit } from "@/lib/plans";
 
 export const metadata = {
   title: "Modifier le produit - Espace Vendeur",
@@ -27,5 +27,5 @@ export default async function ModifierProduitPage({ params }: { params: Promise<
     .filter(Boolean);
 
   const plan = getEffectivePlan(shop.plan, shop.planExpiresAt);
-  return <ProductForm product={product} imageKeys={imageKeys} photoLimit={getPhotoLimit(plan)} />;
+  return <ProductForm product={product} imageKeys={imageKeys} photoLimit={getPhotoLimit(plan)} videoLimit={getVideoLimit(plan)} videoKey={product.videoKey} />;
 }

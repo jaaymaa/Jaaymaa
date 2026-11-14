@@ -3,7 +3,8 @@ import { eq, and, desc, like, or, sql, gte, isNull } from "drizzle-orm";
 import { getDb, getRoutingKV, products, productImages, orderItems, shops, type AppDb } from "@/db";
 import type { Product, Shop } from "@/types/schema";
 import { getImageUrl } from "@/lib/images";
-import { canActivateProduct, getEffectivePlan, getPhotoLimit } from "@/lib/plans";
+import { parseDeliveryZones } from "@/lib/delivery-zones";
+import { canActivateProduct, getEffectivePlan, getPhotoLimit, getVideoLimit } from "@/lib/plans";
 
 function activeProPlusPriority() {
   return sql<number>`CASE WHEN ${and(
@@ -82,6 +83,8 @@ export async function listProductsByShop(
       })),
       imageUrl: imageUrls[0] ?? null,
       imageUrls,
+      videoKey: p.videoKey ?? null,
+      videoUrl: p.videoKey ? getImageUrl(p.videoKey) : null,
       optionsJson: p.optionsJson,
       createdAt: p.createdAt,
       updatedAt: p.updatedAt,
@@ -127,6 +130,8 @@ export async function getProductById(
     })),
     imageUrl: imageUrls[0] ?? null,
     imageUrls,
+    videoKey: p.videoKey ?? null,
+    videoUrl: p.videoKey ? getImageUrl(p.videoKey) : null,
     optionsJson: p.optionsJson,
     createdAt: p.createdAt,
     updatedAt: p.updatedAt,
@@ -186,6 +191,8 @@ export async function getPublicProductByShopSlug(
     })),
     imageUrl: imageUrls[0] ?? null,
     imageUrls,
+    videoKey: p.videoKey ?? null,
+    videoUrl: p.videoKey ? getImageUrl(p.videoKey) : null,
     optionsJson: p.optionsJson,
     createdAt: p.createdAt,
     updatedAt: p.updatedAt,
@@ -281,6 +288,8 @@ export async function exploreProducts(
       })),
       imageUrl: imageUrls[0] ?? null,
       imageUrls,
+      videoKey: p.videoKey ?? null,
+      videoUrl: p.videoKey ? getImageUrl(p.videoKey) : null,
       optionsJson: p.optionsJson,
       createdAt: p.createdAt,
       updatedAt: p.updatedAt,
@@ -305,6 +314,7 @@ export async function exploreProducts(
       orangeMoneyNumber: s.orangeMoneyNumber,
       acceptsCash: Boolean(s.acceptsCash),
       deliveryFee: s.deliveryFee,
+      deliveryZones: parseDeliveryZones(s.deliveryZones) ?? [],
       deliveryNote: s.deliveryNote,
       logoUrl: s.logoUrl,
       logoKey: s.logoUrl,
@@ -343,6 +353,7 @@ export async function createProduct(
     status?: "DRAFT" | "ACTIVE" | "ARCHIVED";
     optionsJson?: string | null;
     images?: Array<{ url: string; alt?: string; position?: number }>;
+    videoKey?: string | null;
   },
   sellerId: string,
   customDb?: AppDb
@@ -364,6 +375,14 @@ export async function createProduct(
   const photoLimit = getPhotoLimit(effectivePlan);
   if ((data.images?.length ?? 0) > photoLimit) {
     throw new Error(`Votre forfait autorise au maximum ${photoLimit} photo${photoLimit > 1 ? "s" : ""} par produit.`);
+  }
+
+  // Vérifier la limite vidéo
+  if (data.videoKey) {
+    const videoLimit = getVideoLimit(effectivePlan);
+    if (videoLimit < 1) {
+      throw new Error("Votre forfait ne permet pas d'ajouter une vidéo par produit. Passez au forfait Pro+.");
+    }
   }
 
   // Le statut par défaut à l'insertion est ACTIVE : vérifier ce cas aussi.
@@ -394,6 +413,7 @@ export async function createProduct(
     position: 0,
     status: nextStatus,
     optionsJson: data.optionsJson || null,
+    videoKey: data.videoKey ?? null,
     createdAt: now,
     updatedAt: now,
   });
@@ -427,6 +447,7 @@ export async function updateProduct(
     status?: "DRAFT" | "ACTIVE" | "ARCHIVED";
     optionsJson?: string | null;
     images?: Array<{ url: string; alt?: string; position?: number }>;
+    videoKey?: string | null;
   },
   sellerId: string,
   customDb?: AppDb
@@ -464,6 +485,14 @@ export async function updateProduct(
     }
   }
 
+  // Vérifier la limite vidéo
+  if (data.videoKey) {
+    const videoLimit = getVideoLimit(effectivePlan);
+    if (videoLimit < 1) {
+      throw new Error("Votre forfait ne permet pas d'ajouter une vidéo par produit. Passez au forfait Pro+.");
+    }
+  }
+
   const nextStatus = data.status ?? existingProduct.product.status;
   if (existingProduct.product.status !== "ACTIVE" && nextStatus === "ACTIVE") {
     const activeProducts = await db
@@ -487,6 +516,7 @@ export async function updateProduct(
   if (data.stock !== undefined) updateData.stock = Math.max(0, Math.floor(data.stock));
   if (data.status) updateData.status = data.status;
   if (data.optionsJson !== undefined) updateData.optionsJson = data.optionsJson;
+  if (data.videoKey !== undefined) updateData.videoKey = data.videoKey;
 
   await db.update(products).set(updateData).where(eq(products.id, productId));
 

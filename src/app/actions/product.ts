@@ -58,6 +58,7 @@ export async function createProduct(
     }));
 
     const optionsJson = (formData.get("optionsJson") as string) || null;
+    const videoKey = (formData.get("videoKey") as string) || null;
 
     await createProductService(
       shop.id,
@@ -69,6 +70,7 @@ export async function createProduct(
         status: isActive ? "ACTIVE" : "DRAFT",
         optionsJson,
         images,
+        videoKey,
       },
       sellerId
     );
@@ -130,6 +132,7 @@ export async function updateProduct(
     }));
 
     const optionsJson = (formData.get("optionsJson") as string) || null;
+    const videoKey = (formData.get("videoKey") as string) || null;
 
     await updateProductService(
       id,
@@ -141,6 +144,7 @@ export async function updateProduct(
         status: isActive ? "ACTIVE" : "DRAFT",
         optionsJson,
         images, // Toujours passer images pour permettre la suppression de toutes les photos
+        videoKey,
       },
       sellerId
     );

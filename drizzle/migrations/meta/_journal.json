@@ -15,6 +15,20 @@
       "when": 1793895046677,
       "tag": "0001_admin_mobile_login_rate_limit",
       "breakpoints": true
+    },
+    {
+      "when": 1794050287822,
+      "tag": "0002_delivery_zones",
+      "breakpoints": true,
+      "idx": 2,
+      "version": "6"
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1794667291980,
+      "tag": "0003_gray_patriot",
+      "breakpoints": true
     }
   ]
 }

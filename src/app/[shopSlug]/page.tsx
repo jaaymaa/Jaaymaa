@@ -111,6 +111,8 @@ export default async function ShopPage({ params, searchParams }: {
     ...product,
     imageUrls: product.imageUrls ?? product.images?.map((i) => i.url) ?? [],
     imageUrl: product.imageUrl ?? product.images?.[0]?.url ?? null,
+    videoKey: product.videoKey ?? null,
+    videoUrl: product.videoUrl ?? (product.videoKey ? getImageUrl(product.videoKey) : null),
   }));
 
   return (
@@ -224,7 +226,11 @@ export default async function ShopPage({ params, searchParams }: {
                 </span>
               )}
               <span className="text-xs font-bold px-3.5 py-1.5 rounded-full border-[2px] border-ink bg-white" style={{ color: "#0F1E3D", boxShadow: "2px 2px 0 #0F1E3D" }}>
-                Livraison {shop.deliveryFee === 0 ? "gratuite" : formatFcfa(shop.deliveryFee)}
+                Livraison {(() => {
+                  const fees = shop.deliveryZones?.map((zone) => zone.fee) ?? [];
+                  const lowestFee = fees.length ? Math.min(...fees) : shop.deliveryFee;
+                  return lowestFee === 0 ? "gratuite" : `à partir de ${formatFcfa(lowestFee)}`;
+                })()}
               </span>
               {shop.deliveryNote && (
                 <span className="text-xs font-bold px-3.5 py-1.5 rounded-full border-[2px] border-ink bg-white/90 text-[#0F1E3D] inline-flex items-center gap-1.5" style={{ boxShadow: "2px 2px 0 #0F1E3D" }}>

@@ -3,7 +3,8 @@ import { eq, and, desc, like, or, sql, gte, isNull } from "drizzle-orm";
 import { getDb, getRoutingKV, shops, products, productImages, type AppDb } from "@/db";
 import type { Shop, Product, ProductImage } from "@/types/schema";
 import { getImageUrl } from "@/lib/images";
-import { getEffectivePlan, getPhotoLimit } from "@/lib/plans";
+import { getEffectivePlan, getPhotoLimit, getVideoLimit } from "@/lib/plans";
+import { parseDeliveryZones } from "@/lib/delivery-zones";
 
 function activeProPlusPriority() {
   return sql<number>`CASE WHEN ${and(
@@ -45,6 +46,7 @@ export function normalizeShopRecord(
     orangeMoneyNumber: s.orangeMoneyNumber,
     acceptsCash: Boolean(s.acceptsCash),
     deliveryFee: s.deliveryFee,
+    deliveryZones: parseDeliveryZones(s.deliveryZones) ?? [],
     deliveryNote: s.deliveryNote,
     logoUrl: s.logoUrl,
     logoKey: s.logoUrl,
@@ -127,12 +129,16 @@ export async function getShopBySlug(
     imagesByProduct.set(img.productId, list);
   }
 
-  const photoLimit = getPhotoLimit(getEffectivePlan(shopRecord.plan, shopRecord.planExpiresAt));
+  const effectivePlan = getEffectivePlan(shopRecord.plan, shopRecord.planExpiresAt);
+  const photoLimit = getPhotoLimit(effectivePlan);
+  const videoLimit = getVideoLimit(effectivePlan);
   const mappedProducts: Product[] = activeProducts.map((p) => {
     const imgs = (imagesByProduct.get(p.id) || []).slice(0, photoLimit);
     const imageUrls = imgs
       .map((i) => getImageUrl(i.url))
       .filter((u): u is string => Boolean(u));
+    const videoKey = videoLimit > 0 ? (p.videoKey ?? null) : null;
+    const videoUrl = videoKey ? getImageUrl(videoKey) : null;
 
     return {
       id: p.id,
@@ -147,6 +153,8 @@ export async function getShopBySlug(
       images: imgs,
       imageUrl: imageUrls[0] ?? null,
       imageUrls,
+      videoKey,
+      videoUrl,
       optionsJson: p.optionsJson,
       createdAt: p.createdAt,
       updatedAt: p.updatedAt,
@@ -287,6 +295,7 @@ export async function createShop(
     orangeMoneyNumber: typeof data.orangeMoneyNumber === "string" ? data.orangeMoneyNumber : null,
     acceptsCash: data.acceptsCash !== false,
     deliveryFee: typeof data.deliveryFee === "number" ? Math.max(0, Math.floor(data.deliveryFee)) : 0,
+    deliveryZones: JSON.stringify(parseDeliveryZones(data.deliveryZones) ?? []),
     deliveryNote: typeof data.deliveryNote === "string" ? data.deliveryNote : null,
     logoUrl: typeof data.logoUrl === "string" ? data.logoUrl : null,
     coverUrl: typeof data.coverUrl === "string" ? data.coverUrl : null,
@@ -341,6 +350,11 @@ export async function updateShop(
   if ("orangeMoneyNumber" in data) updateData.orangeMoneyNumber = (data.orangeMoneyNumber as string) || null;
   if ("acceptsCash" in data) updateData.acceptsCash = Boolean(data.acceptsCash);
   if ("deliveryFee" in data && typeof data.deliveryFee === "number") updateData.deliveryFee = Math.max(0, Math.floor(data.deliveryFee));
+  if ("deliveryZones" in data) {
+    const zones = parseDeliveryZones(data.deliveryZones);
+    if (!zones) throw new Error("Les zones de livraison sont invalides.");
+    updateData.deliveryZones = JSON.stringify(zones);
+  }
   if ("deliveryNote" in data) updateData.deliveryNote = (data.deliveryNote as string) || null;
   if ("status" in data && typeof data.status === "string") updateData.status = data.status;
   if ("logoUrl" in data) updateData.logoUrl = (data.logoUrl as string) || null;

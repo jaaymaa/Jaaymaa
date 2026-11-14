@@ -10,6 +10,7 @@ import ProductImagesUploader from "@/components/ProductImagesUploader";
 import ProductOptionsEditor from "@/components/ProductOptionsEditor";
 import DeleteProductButton from "./DeleteProductButton";
 import ProductDescriptionEditor from "./ProductDescriptionEditor";
+import ProductVideoUploader from "@/components/ProductVideoUploader";
 
 const initialState: { error?: string; success?: boolean } = {};
 
@@ -17,13 +18,18 @@ export default function ProductForm({
   product,
   imageKeys = [],
   photoLimit,
+  videoLimit = 0,
+  videoKey,
 }: {
   product?: Product;
   imageKeys?: string[];
   photoLimit: number;
+  videoLimit?: number;
+  videoKey?: string | null;
 }) {
   const router = useRouter();
   const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [isUploadingVideo, setIsUploadingVideo] = useState(false);
   
   const actionToUse = product
     ? updateProduct.bind(null, product.id)
@@ -57,6 +63,11 @@ export default function ProductForm({
       <form action={formAction} className="space-y-6 md:grid md:grid-cols-[minmax(280px,0.9fr)_minmax(0,1.1fr)] md:items-start md:gap-8 md:space-y-0">
         <div className="space-y-6 md:space-y-0">
         <ProductImagesUploader currentKeys={imageKeys} maxImages={photoLimit} onUploadingChange={setIsUploadingImage} />
+        {videoLimit >= 1 && (
+          <div className="mt-5">
+            <ProductVideoUploader currentKey={videoKey} onUploadingChange={setIsUploadingVideo} />
+          </div>
+        )}
         </div>
 
         <div className="space-y-6">
@@ -143,7 +154,7 @@ export default function ProductForm({
         <div className="pt-8 space-y-3">
           <button
             type="submit"
-            disabled={isPending || isUploadingImage}
+            disabled={isPending || isUploadingImage || isUploadingVideo}
             className="w-full py-4 rounded-full font-bold text-[15px] border-[2.5px] border-ink flex items-center justify-center gap-2 active:scale-95 transition-transform disabled:opacity-60"
             style={{ backgroundColor: "#FFC83D", color: "#0F1E3D", boxShadow: "4px 4px 0 #0F1E3D" }}
           >
@@ -151,6 +162,11 @@ export default function ProductForm({
               <>
                 <JaaymaLoader variant="mini-ink" size={32} />
                 <span>Téléversement de la photo...</span>
+              </>
+            ) : isUploadingVideo ? (
+              <>
+                <JaaymaLoader variant="mini-ink" size={32} />
+                <span>Téléversement de la vidéo...</span>
               </>
             ) : isPending ? (
               <>

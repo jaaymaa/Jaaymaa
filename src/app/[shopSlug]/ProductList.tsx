@@ -9,6 +9,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import ConfirmModal from "@/components/ConfirmModal";
 import FormattedDescription from "@/components/FormattedDescription";
 import { trackAnalyticsEvent } from "@/lib/analytics";
+import { getImageUrl } from "@/lib/images";
+import { Video } from "lucide-react";
 
 /* ─── Product modal (fiche produit — design 04) ─── */
 type ProductCard = Product & { imageUrl?: string | null; imageUrls?: string[]; _count?: { images: number } };
@@ -30,7 +32,7 @@ function ProductModal({
   onAdd: (product: Product, selectedOptions?: Record<string, string>, qty?: number) => void;
 }) {
   const [qty, setQty] = useState(1);
-  const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const [activeMediaIndex, setActiveMediaIndex] = useState(0);
   const [dragOffsetY, setDragOffsetY] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [isOpening, setIsOpening] = useState(true);
@@ -83,6 +85,12 @@ function ProductModal({
     : product.imageUrl
       ? [product.imageUrl]
       : [];
+  const videoUrl = product.videoUrl ?? (product.videoKey ? getImageUrl(product.videoKey) : null);
+  const mediaItems: Array<{ type: "image"; url: string } | { type: "video"; url: string }> = [
+    ...imageUrls.map((url) => ({ type: "image" as const, url })),
+    ...(videoUrl ? [{ type: "video" as const, url: videoUrl }] : []),
+  ];
+  const videoIndex = mediaItems.findIndex((m) => m.type === "video");
   const wax = WAX_PATTERNS[Math.abs(product.name.charCodeAt(0)) % WAX_PATTERNS.length];
 
   const requestClose = useCallback(() => {
@@ -248,58 +256,109 @@ function ProductModal({
           <div className="w-12 h-1.5 rounded-full" style={{ backgroundColor: "#D8DCE8" }} />
         </div>
 
-        {/* Image produit (wax pattern) */}
+        {/* Image / Média produit */}
         <div
           className="mx-4 rounded-2xl border-[2px] border-ink overflow-hidden relative shadow-[3px_3px_0_#0F1E3D]"
           style={{ height: 260 }}
         >
-          <ProductImageFrame imageUrl={imageUrls[activeImageIndex]} alt={`${product.name}, photo ${activeImageIndex + 1}`} wax={wax} height={260} loading="eager" />
+          {mediaItems[activeMediaIndex]?.type === "video" ? (
+            <div className="w-full h-full bg-black flex items-center justify-center">
+              <video
+                src={mediaItems[activeMediaIndex].url}
+                controls
+                playsInline
+                preload="metadata"
+                className="w-full h-full object-contain"
+              />
+            </div>
+          ) : (
+            <ProductImageFrame
+              imageUrl={mediaItems[activeMediaIndex]?.url}
+              alt={`${product.name}, média ${activeMediaIndex + 1}`}
+              wax={wax}
+              height={260}
+              loading="eager"
+            />
+          )}
           {/* Badge Nouveau */}
           <span
-            className="absolute top-3 left-3 text-xs font-bold px-3 py-1.5 rounded-full border-[2px] border-ink"
+            className="absolute top-3 left-3 text-xs font-bold px-3 py-1.5 rounded-full border-[2px] border-ink z-10"
             style={{ backgroundColor: themeColor, color: themeForeground }}
           >
             Nouveau
           </span>
-          {imageUrls.length > 1 && (
+          {/* Bouton direct "Voir la vidéo" si activeMedia n'est pas la vidéo */}
+          {videoIndex !== -1 && activeMediaIndex !== videoIndex && (
+            <button
+              type="button"
+              onClick={() => setActiveMediaIndex(videoIndex)}
+              className="absolute top-3 right-3 text-xs font-black px-3 py-1.5 rounded-full border-[2px] border-ink bg-[#0F1E3D] text-[#FFC83D] flex items-center gap-1.5 shadow-[2px_2px_0_#0F1E3D] z-10 hover:scale-105 active:scale-95 transition-transform"
+            >
+              <Video className="w-3.5 h-3.5 text-[#FFC83D]" />
+              <span>Voir la vidéo</span>
+            </button>
+          )}
+          {mediaItems.length > 1 && (
             <>
               <button
                 type="button"
-                aria-label="Photo précédente"
-                onClick={() => setActiveImageIndex((index) => (index - 1 + imageUrls.length) % imageUrls.length)}
-                className="absolute left-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full border-2 border-ink bg-white/95 flex items-center justify-center font-black text-ink shadow"
+                aria-label="Média précédent"
+                onClick={() => setActiveMediaIndex((index) => (index - 1 + mediaItems.length) % mediaItems.length)}
+                className="absolute left-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full border-2 border-ink bg-white/95 flex items-center justify-center font-black text-ink shadow z-10"
               >
                 ‹
               </button>
               <button
                 type="button"
-                aria-label="Photo suivante"
-                onClick={() => setActiveImageIndex((index) => (index + 1) % imageUrls.length)}
-                className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full border-2 border-ink bg-white/95 flex items-center justify-center font-black text-ink shadow"
+                aria-label="Média suivant"
+                onClick={() => setActiveMediaIndex((index) => (index + 1) % mediaItems.length)}
+                className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full border-2 border-ink bg-white/95 flex items-center justify-center font-black text-ink shadow z-10"
               >
                 ›
               </button>
-              <span className="absolute bottom-3 right-3 rounded-full border border-white/60 bg-ink/85 px-2.5 py-1 text-xs font-bold text-white">
-                {activeImageIndex + 1} / {imageUrls.length}
+              <span className="absolute bottom-3 right-3 rounded-full border border-white/60 bg-ink/85 px-2.5 py-1 text-xs font-bold text-white z-10">
+                {activeMediaIndex + 1} / {mediaItems.length}
               </span>
             </>
           )}
         </div>
-        {imageUrls.length > 1 && (
-          <div className="mx-4 mt-2 flex gap-2 overflow-x-auto pb-1" role="group" aria-label="Photos du produit">
-            {imageUrls.map((url: string, index: number) => (
-              <button
-                key={`${url}-${index}`}
-                type="button"
-                aria-label={`Afficher la photo ${index + 1}`}
-                aria-pressed={activeImageIndex === index}
-                onClick={() => setActiveImageIndex(index)}
-                className={`h-14 w-14 shrink-0 overflow-hidden rounded-lg border-2 ${activeImageIndex === index ? "border-[#C8265A]" : "border-ink/30"}`}
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={url} alt="" loading="lazy" className="h-full w-full bg-white object-contain p-0.5" />
-              </button>
-            ))}
+        {mediaItems.length > 1 && (
+          <div className="mx-4 mt-2 flex gap-2 overflow-x-auto pb-1" role="group" aria-label="Médias du produit">
+            {mediaItems.map((item, index) => {
+              const isSelected = activeMediaIndex === index;
+              if (item.type === "video") {
+                return (
+                  <button
+                    key={`video-${index}`}
+                    type="button"
+                    aria-label="Afficher la vidéo"
+                    aria-pressed={isSelected}
+                    onClick={() => setActiveMediaIndex(index)}
+                    className={`h-14 w-14 shrink-0 overflow-hidden rounded-lg border-2 flex flex-col items-center justify-center gap-0.5 bg-[#0F1E3D] text-[#FFC83D] transition-all ${
+                      isSelected ? "border-[#FFC83D] ring-2 ring-[#FFC83D]/40" : "border-ink/30 opacity-80"
+                    }`}
+                  >
+                    <Video className="w-5 h-5 text-[#FFC83D]" />
+                    <span className="text-[9px] font-black uppercase tracking-tight">Vidéo</span>
+                  </button>
+                );
+              }
+              return (
+                <button
+                  key={`${item.url}-${index}`}
+                  type="button"
+                  aria-label={`Afficher la photo ${index + 1}`}
+                  aria-pressed={isSelected}
+                  onClick={() => setActiveMediaIndex(index)}
+                  className={`h-14 w-14 shrink-0 overflow-hidden rounded-lg border-2 ${
+                    isSelected ? "border-[#C8265A]" : "border-ink/30"
+                  }`}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={item.url} alt="" loading="lazy" className="h-full w-full bg-white object-contain p-0.5" />
+                </button>
+              );
+            })}
           </div>
         )}
 
@@ -624,11 +683,16 @@ export default function ProductList({
                   className="absolute top-2 right-2 w-3 h-3 rounded-full border-[2px] border-ink"
                   style={{ backgroundColor: "#C8265A" }}
                 />
-                {product.imageUrls && product.imageUrls.length > 1 && (
+                {(product.videoUrl || product.videoKey) ? (
+                  <span className="absolute top-2 left-2 rounded-full border border-ink bg-[#0F1E3D] px-2.5 py-0.5 text-[10px] font-black text-[#FFC83D] flex items-center gap-1 shadow-sm">
+                    <Video className="w-3 h-3" />
+                    <span>{product.imageUrls && product.imageUrls.length > 0 ? `${product.imageUrls.length} photos · Vidéo` : "Vidéo"}</span>
+                  </span>
+                ) : product.imageUrls && product.imageUrls.length > 1 ? (
                   <span className="absolute top-2 left-2 rounded-full border border-ink bg-white/95 px-2 py-1 text-[10px] font-bold text-ink">
                     {product.imageUrls.length} photos
                   </span>
-                )}
+                ) : null}
                 {optionCount > 0 && (
                   <span className="absolute bottom-2 left-2 rounded-full border border-ink px-2 py-0.5 text-[10px] font-bold shadow-sm" style={{ backgroundColor: themeColor, color: themeForeground }}>
                     Variantes

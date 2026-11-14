@@ -8,6 +8,33 @@ export async function uploadImageFile(
   const formData = new FormData();
   formData.append("file", ready);
   formData.append("folder", folder);
+  formData.append("fileType", "image");
+
+  try {
+    const res = await fetch("/api/upload", {
+      method: "POST",
+      body: formData,
+    });
+    const data = (await res.json()) as { error?: string; key?: string };
+
+    if (!res.ok || data.error) {
+      return { error: data.error || "Erreur lors de l'upload." };
+    }
+
+    return { key: data.key as string };
+  } catch {
+    return { error: "Erreur réseau lors de l'upload." };
+  }
+}
+
+export async function uploadVideoFile(
+  file: File,
+  folder: string
+): Promise<{ key?: string; error?: string }> {
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("folder", folder);
+  formData.append("fileType", "video");
 
   try {
     const res = await fetch("/api/upload", {
