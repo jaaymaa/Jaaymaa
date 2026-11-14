@@ -51,8 +51,8 @@ export default function ProductImageFrame({
     >
       {imageUrl ? (
         <div
-          className="absolute overflow-hidden rounded-lg border-[1.5px] border-ink"
-          style={{ inset: height >= 160 ? 12 : 7, backgroundColor: "#FFFBF2" }}
+          className="absolute overflow-hidden rounded-xl border border-ink/10 bg-white"
+          style={{ inset: height >= 200 ? 4 : 3 }}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
@@ -61,13 +61,13 @@ export default function ProductImageFrame({
             loading={loading}
             fetchPriority={fetchPriority}
             decoding="async"
-            className="h-full w-full object-contain p-1.5"
+            className="h-full w-full object-contain p-2"
           />
         </div>
       ) : (
         <div
-          className="absolute flex flex-col items-center justify-center rounded-lg border-[1.5px] border-ink shadow-[2px_2px_0_#0F1E3D] select-none"
-          style={{ inset: height >= 160 ? 12 : 7, backgroundColor: "#FFFBF2" }}
+          className="absolute flex flex-col items-center justify-center rounded-xl border-[1.5px] border-ink shadow-[2px_2px_0_#0F1E3D] select-none"
+          style={{ inset: height >= 160 ? 8 : 5, backgroundColor: "#FFFBF2" }}
         >
           <span className="font-bricolage font-black text-2xl text-ink leading-none">
             {(alt || "P").charAt(0).toUpperCase()}

@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { eq, lt, sql } from "drizzle-orm";
+import { eq, lt } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { adminMobileLoginAttempts, getDb } from "@/db";
 import { validateSession } from "@/services/auth.service";

@@ -93,7 +93,7 @@ function ExploreProductSheet({
           >×</button>
         </div>
         <div className="p-4 sm:p-5">
-          <div className="overflow-hidden rounded-[22px] border-2 border-ink bg-white p-2 shadow-[3px_3px_0_#0F1E3D]">
+          <div className="overflow-hidden rounded-[22px] border-2 border-ink bg-white shadow-[3px_3px_0_#0F1E3D]">
             <ProductImageFrame imageUrl={imageUrl} alt={product.name} wax={WAX_PATTERNS[0]} height={300} loading="eager" />
           </div>
           <div className="px-1 pb-2 pt-5">

@@ -250,10 +250,10 @@ function ProductModal({
 
         {/* Image produit (wax pattern) */}
         <div
-          className="mx-4 rounded-2xl border-[2px] border-ink overflow-hidden relative"
-          style={{ height: 220 }}
+          className="mx-4 rounded-2xl border-[2px] border-ink overflow-hidden relative shadow-[3px_3px_0_#0F1E3D]"
+          style={{ height: 260 }}
         >
-          <ProductImageFrame imageUrl={imageUrls[activeImageIndex]} alt={`${product.name}, photo ${activeImageIndex + 1}`} wax={wax} height={220} loading="eager" />
+          <ProductImageFrame imageUrl={imageUrls[activeImageIndex]} alt={`${product.name}, photo ${activeImageIndex + 1}`} wax={wax} height={260} loading="eager" />
           {/* Badge Nouveau */}
           <span
             className="absolute top-3 left-3 text-xs font-bold px-3 py-1.5 rounded-full border-[2px] border-ink"
