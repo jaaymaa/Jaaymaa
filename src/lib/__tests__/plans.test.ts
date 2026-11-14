@@ -38,20 +38,20 @@ describe("canActivateProduct", () => {
     expect(canActivateProduct("free", 10)).toBe(false);
   });
 
-  it("allows activation when under pro limit (100)", () => {
-    expect(canActivateProduct("pro", 99)).toBe(true);
+  it("allows activation when under pro limit (75)", () => {
+    expect(canActivateProduct("pro", 74)).toBe(true);
   });
 
-  it("denies activation when at pro limit (100)", () => {
-    expect(canActivateProduct("pro", 100)).toBe(false);
+  it("denies activation when at pro limit (75)", () => {
+    expect(canActivateProduct("pro", 75)).toBe(false);
   });
 
-  it("allows activation when under pro_plus limit (200)", () => {
-    expect(canActivateProduct("pro_plus", 199)).toBe(true);
+  it("allows activation when under pro_plus limit (150)", () => {
+    expect(canActivateProduct("pro_plus", 149)).toBe(true);
   });
 
-  it("denies activation when at pro_plus limit (200)", () => {
-    expect(canActivateProduct("pro_plus", 200)).toBe(false);
+  it("denies activation when at pro_plus limit (150)", () => {
+    expect(canActivateProduct("pro_plus", 150)).toBe(false);
   });
 });
 
@@ -72,12 +72,12 @@ describe("canAddPhoto", () => {
     expect(canAddPhoto("pro", 3)).toBe(false);
   });
 
-  it("allows 4 photos on pro_plus plan", () => {
-    expect(canAddPhoto("pro_plus", 3)).toBe(true);
+  it("allows 5 photos on pro_plus plan", () => {
+    expect(canAddPhoto("pro_plus", 4)).toBe(true);
   });
 
-  it("denies 5th photo on pro_plus plan", () => {
-    expect(canAddPhoto("pro_plus", 4)).toBe(false);
+  it("denies 6th photo on pro_plus plan", () => {
+    expect(canAddPhoto("pro_plus", 5)).toBe(false);
   });
 });
 
@@ -88,12 +88,12 @@ describe("getProductLimit and getPhotoLimit", () => {
   });
 
   it("returns correct limits for pro plan", () => {
-    expect(getProductLimit("pro")).toBe(100);
+    expect(getProductLimit("pro")).toBe(75);
     expect(getPhotoLimit("pro")).toBe(3);
   });
 
   it("returns correct limits for pro_plus plan", () => {
-    expect(getProductLimit("pro_plus")).toBe(200);
-    expect(getPhotoLimit("pro_plus")).toBe(4);
+    expect(getProductLimit("pro_plus")).toBe(150);
+    expect(getPhotoLimit("pro_plus")).toBe(5);
   });
 });

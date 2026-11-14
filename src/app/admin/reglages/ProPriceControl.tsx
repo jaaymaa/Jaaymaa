@@ -95,7 +95,7 @@ export default function ProPriceControl({
             </div>
             <h2 className="mt-1 font-bricolage text-lg font-black">Prix de la formule Pro</h2>
             <p className="mt-1 max-w-xl text-xs leading-5 text-muted">
-              Appliqué aux prochains paiements vendeurs pour 30 jours (100 produits, 3 photos/produit).
+              Appliqué aux prochains paiements vendeurs pour 30 jours (75 produits, 3 photos/produit).
             </p>
           </div>
           <form onSubmit={saveProPrice} className="flex flex-col gap-2 sm:min-w-[310px]">
@@ -141,7 +141,7 @@ export default function ProPriceControl({
             </div>
             <h2 className="mt-1 font-bricolage text-lg font-black">Prix de la formule Pro+</h2>
             <p className="mt-1 max-w-xl text-xs leading-5 text-muted">
-              Paiement mensuel pour 30 jours (200 produits, 4 photos/produit, badge certifié & outils marketing).
+              Paiement mensuel pour 30 jours (150 produits, 5 photos/produit + 1 vidéo, badge certifié & outils marketing).
             </p>
           </div>
           <form onSubmit={saveProPlusPrice} className="flex flex-col gap-2 sm:min-w-[310px]">

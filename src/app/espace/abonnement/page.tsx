@@ -156,7 +156,7 @@ export default async function AbonnementPage({
       <ul className="mb-4 space-y-2 sm:mb-6 sm:space-y-2.5">
         <li className="flex items-start gap-2.5 font-bold text-[13px] text-ink sm:text-sm">
           <span className="mt-0.5 inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-ink text-[#EFCC6E] sm:h-[18px] sm:w-[18px]"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="sm:h-3 sm:w-3"><polyline points="20 6 9 17 4 12" /></svg></span>
-          Jusqu'à 100 produits en ligne
+          Jusqu'à 75 produits en ligne
         </li>
         <li className="flex items-start gap-2.5 font-bold text-[13px] text-ink sm:text-sm">
           <span className="mt-0.5 inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-ink text-[#EFCC6E] sm:h-[18px] sm:w-[18px]"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="sm:h-3 sm:w-3"><polyline points="20 6 9 17 4 12" /></svg></span>
@@ -308,11 +308,11 @@ export default async function AbonnementPage({
       <ul className="mb-4 space-y-2 text-ink sm:mb-6 sm:space-y-2.5">
         <li className="flex items-start gap-2.5 font-bold text-[13px] sm:text-sm">
           <span className="mt-0.5 inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-ink text-[#EFCC6E] sm:h-[18px] sm:w-[18px]"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="sm:h-3 sm:w-3"><polyline points="20 6 9 17 4 12" /></svg></span>
-          Jusqu'à 200 produits en ligne
+          Jusqu'à 150 produits en ligne
         </li>
         <li className="flex items-start gap-2.5 font-bold text-[13px] sm:text-sm">
           <span className="mt-0.5 inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-ink text-[#EFCC6E] sm:h-[18px] sm:w-[18px]"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="sm:h-3 sm:w-3"><polyline points="20 6 9 17 4 12" /></svg></span>
-          Jusqu'à 4 photos par produit
+          Jusqu'à 5 photos par produit + 1 vidéo
         </li>
         <li className="flex items-start gap-2.5 font-bold text-[13px] sm:text-sm">
           <span className="mt-0.5 inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-ink text-[#EFCC6E] sm:h-[18px] sm:w-[18px]"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="sm:h-3 sm:w-3"><polyline points="20 6 9 17 4 12" /></svg></span>
@@ -415,7 +415,7 @@ export default async function AbonnementPage({
               Passer à la formule Pro+ (1 mois)
             </p>
             <p className="mx-auto mt-1 max-w-sm text-xs font-medium text-[#5B647A]">
-              Débloquez 200 produits et 4 photos par produit pendant 30 jours. Vos jours Pro restants sont conservés.
+              Débloquez 150 produits, jusqu'à 5 photos par produit et 1 vidéo pendant 30 jours. Vos jours Pro restants sont conservés.
             </p>
           </div>
           <SubscriptionPaymentButtons price={formattedProPlusPrice} plan="pro_plus" />

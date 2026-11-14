@@ -244,7 +244,7 @@ export default async function DashboardPage() {
   const isPaid = effectivePlan === "pro" || effectivePlan === "pro_plus";
   const planLabel = effectivePlan === "pro_plus" ? "Plan Pro+" : effectivePlan === "pro" ? "Plan Pro" : "Plan Gratuit";
   const subscriptionLabel = shop.plan === "pro_plus" ? "Pro+" : "Pro";
-  const subscriptionPhotoLimit = shop.plan === "pro_plus" ? 4 : 3;
+  const subscriptionPhotoLimit = shop.plan === "pro_plus" ? 5 : 3;
   const proDaysRemaining = getProDaysRemaining(shop.plan, shop.planExpiresAt);
   const proUrgency = getProUrgency(shop.plan, shop.planExpiresAt);
   const showRenewalBanner = proUrgency === "warning" || proUrgency === "critical" || proUrgency === "expired";

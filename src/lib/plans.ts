@@ -1,8 +1,8 @@
 /**
  * Plan limits and helpers for Jaaymaa.
  * Free plan: 10 active products, 1 photo per product.
- * Pro plan: 100 active products, 3 photos per product (monthly).
- * Pro+ plan: 200 active products, 4 photos per product (monthly).
+ * Pro plan: 75 active products, 3 photos per product (monthly).
+ * Pro+ plan: 150 active products, 5 photos per product + 1 vidéo (monthly).
  */
 
 export type Plan = "free" | "pro" | "pro_plus";
@@ -11,16 +11,19 @@ export const PLAN_LIMITS = {
   free: {
     maxActiveProducts: 10,
     maxPhotosPerProduct: 1,
+    maxVideosPerProduct: 0,
   },
   pro: {
-    maxActiveProducts: 100,
+    maxActiveProducts: 75,
     maxPhotosPerProduct: 3,
+    maxVideosPerProduct: 0,
   },
   pro_plus: {
-    maxActiveProducts: 200,
-    maxPhotosPerProduct: 4,
+    maxActiveProducts: 150,
+    maxPhotosPerProduct: 5,
+    maxVideosPerProduct: 1,
   },
-} as const satisfies Record<Plan, { maxActiveProducts: number; maxPhotosPerProduct: number }>;
+} as const satisfies Record<Plan, { maxActiveProducts: number; maxPhotosPerProduct: number; maxVideosPerProduct: number }>;
 
 export function isPaidPlan(plan?: string | null): boolean {
   return plan === "pro" || plan === "pro_plus";
@@ -73,6 +76,11 @@ export function getProductLimit(effectivePlan: Plan): number {
 /** Returns the photo limit for a given plan. */
 export function getPhotoLimit(effectivePlan: Plan): number {
   return PLAN_LIMITS[effectivePlan].maxPhotosPerProduct;
+}
+
+/** Returns the video limit for a given plan. */
+export function getVideoLimit(effectivePlan: Plan): number {
+  return PLAN_LIMITS[effectivePlan].maxVideosPerProduct;
 }
 
 /**
