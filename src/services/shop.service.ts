@@ -356,7 +356,13 @@ export async function updateShop(
     updateData.deliveryZones = JSON.stringify(zones);
   }
   if ("deliveryNote" in data) updateData.deliveryNote = (data.deliveryNote as string) || null;
-  if ("status" in data && typeof data.status === "string") updateData.status = data.status;
+  // Protection stricte : si la boutique est suspendue par l'administration,
+  // un vendeur ne peut JAMAIS la réactiver ou changer son statut.
+  if (existing.status === "SUSPENDED") {
+    updateData.status = "SUSPENDED";
+  } else if ("status" in data && typeof data.status === "string") {
+    updateData.status = data.status === "ACTIVE" ? "ACTIVE" : "DRAFT";
+  }
   if ("logoUrl" in data) updateData.logoUrl = (data.logoUrl as string) || null;
   if ("coverUrl" in data) updateData.coverUrl = (data.coverUrl as string) || null;
   if ("facebookPixelId" in data) updateData.facebookPixelId = (data.facebookPixelId as string) || null;

@@ -189,10 +189,12 @@ export default async function DashboardPage() {
     },
     {
       id: "publish",
-      title: "Publie ta boutique",
-      description: "Ton lien devient accessible à tes clients.",
-      complete: Boolean(shop.isPublished),
-      href: "/espace/boutique#publication-settings",
+      title: shop.isSuspended ? "Boutique suspendue" : "Publie ta boutique",
+      description: shop.isSuspended
+        ? "Suspendue par l'administration Jaayma."
+        : "Ton lien devient accessible à tes clients.",
+      complete: Boolean(shop.isPublished && !shop.isSuspended),
+      href: "/espace/boutique",
       icon: <Truck size={18} />,
     },
   ];
@@ -264,6 +266,19 @@ export default async function DashboardPage() {
 
   return (
     <div className="mx-auto w-full max-w-6xl space-y-6 px-4 py-5 sm:px-6 sm:py-7 md:px-8 lg:px-10 xl:max-w-[1500px]">
+      {shop.isSuspended && (
+        <div className="rounded-[22px] border-[2.5px] border-[#C8265A] bg-[#C8265A]/20 p-5 text-white shadow-[4px_4px_0_#0F1E3D] flex items-start gap-4">
+          <span className="text-3xl shrink-0" aria-hidden="true">⛔</span>
+          <div>
+            <h2 className="font-bricolage text-lg font-black text-[#FFC83D]">
+              Boutique suspendue par l&apos;administration
+            </h2>
+            <p className="mt-1 text-sm text-[#FFFBF2] leading-relaxed">
+              Votre boutique a été suspendue par l&apos;équipe Jaayma. Votre catalogue public et la réception de commandes sont désactivés. Pour toute information ou demande de rétablissement, veuillez contacter le support Jaayma.
+            </p>
+          </div>
+        </div>
+      )}
       <section className="overflow-hidden rounded-[26px] border-[2.5px] border-ink bg-[#FFC83D] shadow-[5px_5px_0_#0F1E3D]">
         <div className="relative grid gap-6 p-5 sm:p-7 lg:grid-cols-[1fr_auto] lg:items-end lg:p-9">
           <div className="relative z-10">

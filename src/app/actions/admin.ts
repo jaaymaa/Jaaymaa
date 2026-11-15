@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { getCurrentSellerContext } from "@/lib/auth";
 import {
   isUserAdmin,
@@ -91,10 +91,18 @@ export async function setShopPlan(
 export async function setShopSuspension(shopId: string, isSuspended: boolean) {
   try {
     await requireAdmin();
-    await adminUpdateShopStatusService(shopId, isSuspended ? "SUSPENDED" : "ACTIVE");
+    const result = await adminUpdateShopStatusService(shopId, isSuspended ? "SUSPENDED" : "ACTIVE");
 
+    updateTag("shops");
     revalidatePath("/admin");
+    revalidatePath("/admin/boutiques");
+    revalidatePath("/admin/abonnements");
+    revalidatePath("/espace", "layout");
+    revalidatePath("/espace/boutique");
     revalidatePath("/explorer");
+    if (result?.slug) {
+      revalidatePath(`/${result.slug}`);
+    }
     return { success: true };
   } catch (error) {
     const msg = error instanceof Error ? error.message : "Erreur lors de la suspension.";

@@ -7,6 +7,7 @@ import { DEFAULT_SHOP_THEME, SHOP_THEME_COLORS } from "@/lib/shop-theme";
 import { revalidatePath, updateTag } from "next/cache";
 import { getShopByOwner, createShop, updateShop } from "@/services/shop.service";
 import { getEffectivePlan, isPaidPlan } from "@/lib/plans";
+import { parseDeliveryZones } from "@/lib/delivery-zones";
 
 export async function upsertShop(
   _prevState: unknown,
@@ -28,6 +29,7 @@ export async function upsertShop(
   const acceptsCash = formData.get("acceptsCash") === "on";
   const rawDeliveryFee = formData.get("deliveryFee") as string;
   const deliveryNote = (formData.get("deliveryNote") as string)?.trim();
+  const rawDeliveryZones = formData.get("deliveryZones") as string | null;
   const isPublished = formData.get("isPublished") === "on";
   const logoKey = formData.has("logoKey")
     ? ((formData.get("logoKey") as string) || null)
@@ -68,6 +70,11 @@ export async function upsertShop(
     return { error: "Les frais de livraison sont invalides." };
   }
 
+  const deliveryZones = parseDeliveryZones(rawDeliveryZones || "[]");
+  if (!deliveryZones) {
+    return { error: "Vérifie tes zones : chaque nom et tarif doit être valide, sans doublon (30 zones maximum)." };
+  }
+
   const waveNumber = rawWave ? normalizePhone(rawWave) : null;
   if (rawWave && !waveNumber) {
     return { error: "Le numéro Wave n'est pas valide." };
@@ -98,8 +105,13 @@ export async function upsertShop(
       whatsapp,
       acceptsCash,
       deliveryFee,
+      deliveryZones,
       deliveryNote: deliveryNote || null,
-      status: isPublished ? "ACTIVE" : "DRAFT",
+      status: (existingShop?.status === "SUSPENDED" || existingShop?.isSuspended)
+        ? "SUSPENDED"
+        : isPublished
+          ? "ACTIVE"
+          : "DRAFT",
       waveNumber,
       ...(hasWavePaymentLinkField ? { wavePaymentLink } : {}),
       orangeMoneyNumber,

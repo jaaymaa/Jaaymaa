@@ -1,4 +1,4 @@
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { getImageUrl } from "@/lib/images";
 import { nativeAdminJson, requireNativeAdmin } from "@/lib/native-admin-api";
 import {
@@ -148,9 +148,15 @@ export async function PATCH(request: Request, { params }: RouteContext) {
       }
 
       if (section === "shops" && (body.status === "ACTIVE" || body.status === "DRAFT" || body.status === "SUSPENDED")) {
-        await adminUpdateShopStatus(shopId, body.status);
+        const result = await adminUpdateShopStatus(shopId, body.status);
+        updateTag("shops");
         revalidatePath("/admin/boutiques");
+        revalidatePath("/admin/abonnements");
+        revalidatePath("/espace", "layout");
         revalidatePath("/explorer");
+        if (result?.slug) {
+          revalidatePath(`/${result.slug}`);
+        }
         return nativeAdminJson({ success: true });
       }
       return nativeAdminJson({ error: "Modification invalide." }, 400);

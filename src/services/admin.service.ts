@@ -650,6 +650,14 @@ export async function adminUpdateShopStatus(
   customDb?: AppDb
 ) {
   const db = customDb || (await getDb());
+  const currentShop = await db
+    .select()
+    .from(shops)
+    .where(eq(shops.id, shopId))
+    .get();
+
+  if (!currentShop) throw new Error("Boutique introuvable.");
+
   await db
     .update(shops)
     .set({
@@ -658,5 +666,9 @@ export async function adminUpdateShopStatus(
     })
     .where(eq(shops.id, shopId));
 
-  return { success: true };
+  if (!customDb) {
+    await invalidateShopKvCache(currentShop.slug);
+  }
+
+  return { success: true, slug: currentShop.slug };
 }

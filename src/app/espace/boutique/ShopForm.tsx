@@ -1,13 +1,13 @@
 "use client";
 
 import { useActionState, useEffect, useState } from "react";
-import { Check, ChevronDown, Copy } from "lucide-react";
+import { Check, ChevronDown, Copy, Plus, Trash2 } from "lucide-react";
 import { JaaymaLoader } from "@/components/JaaymaLoader";
 import { upsertShop } from "../../actions/shop";
 import { formatPhone } from "@/lib/phone";
 import { suggestSlug } from "@/lib/slug";
 import { DEFAULT_SHOP_THEME, getShopThemeForeground, SHOP_THEMES } from "@/lib/shop-theme";
-import type { Shop } from "@/types/schema";
+import type { DeliveryZone, Shop } from "@/types/schema";
 import ImageUploader from "@/components/ImageUploader";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -34,6 +34,7 @@ export default function ShopForm({ shop, publicOrigin, canUseMarketingTools }: {
   const [slug, setSlug] = useState(shop?.slug || "");
   const [selectedCategory, setSelectedCategory] = useState(shop?.category || "");
   const [selectedTheme, setSelectedTheme] = useState(shop?.themeColor || DEFAULT_SHOP_THEME);
+  const [deliveryZones, setDeliveryZones] = useState<DeliveryZone[]>(shop?.deliveryZones ?? []);
   const [waveNumber, setWaveNumber] = useState(
     shop?.waveNumber ? formatPhone(shop.waveNumber) : ""
   );
@@ -43,6 +44,7 @@ export default function ShopForm({ shop, publicOrigin, canUseMarketingTools }: {
   );
   const [slugTouched, setSlugTouched] = useState(Boolean(shop?.slug));
   const [copiedFeed, setCopiedFeed] = useState(false);
+  const isSuspended = Boolean(shop?.isSuspended || shop?.status === "SUSPENDED");
   const publicHost = new URL(publicOrigin).host;
   const paymentAndDeliveryReady = Boolean(
     shop &&
@@ -56,6 +58,7 @@ export default function ShopForm({ shop, publicOrigin, canUseMarketingTools }: {
       setSlug(shop.slug);
       setSelectedCategory(shop.category || "");
       setSelectedTheme(shop.themeColor || DEFAULT_SHOP_THEME);
+      setDeliveryZones(shop.deliveryZones ?? []);
       setWaveNumber(shop.waveNumber ? formatPhone(shop.waveNumber) : "");
       setWavePaymentLink(shop.wavePaymentLink || "");
       setOrangeMoneyNumber(shop.orangeMoneyNumber ? formatPhone(shop.orangeMoneyNumber) : "");
@@ -70,6 +73,17 @@ export default function ShopForm({ shop, publicOrigin, canUseMarketingTools }: {
 
   return (
     <div className="mx-auto min-h-screen max-w-xl p-5 pb-24 md:max-w-5xl md:px-8 xl:max-w-[1500px]" style={{ backgroundColor: "#0F1E3D" }}>
+      {isSuspended && (
+        <div className="mb-6 p-4 rounded-2xl border-[2.5px] border-[#C8265A] bg-[#C8265A]/15 text-[#FFFBF2] flex items-start gap-3.5 shadow-[3px_3px_0_#0F1E3D]">
+          <span className="text-2xl shrink-0" aria-hidden="true">⛔</span>
+          <div className="min-w-0">
+            <h2 className="font-bricolage font-black text-base text-[#FFC83D]">Boutique suspendue par l&apos;administration</h2>
+            <p className="text-xs text-[#E1E6F0] mt-1 leading-relaxed">
+              Votre boutique a été suspendue par l&apos;équipe Jaayma. Votre catalogue public et la réception de commandes sont désactivés. Vous ne pouvez pas réactiver la boutique vous-même. Veuillez contacter le support pour résoudre cette situation.
+            </p>
+          </div>
+        </div>
+      )}
       <form action={formAction} className="space-y-6 md:grid md:grid-cols-2 md:items-start md:gap-8 md:space-y-0">
       <div className="space-y-6 md:space-y-5">
       {/*  HEADER  */}
@@ -296,8 +310,64 @@ export default function ShopForm({ shop, publicOrigin, canUseMarketingTools }: {
               </span>
             </summary>
             <div className="space-y-4 border-t border-white/10 p-4">
+          <div className="space-y-3">
+            <div>
+              <p className="text-xs font-bold" style={{ color: "#C3CCE6" }}>Zones de livraison</p>
+              <p className="mt-1 text-[11px] leading-relaxed" style={{ color: "#8D98AF" }}>
+                Ajoute les quartiers desservis et leur tarif. Le client choisira sa zone au moment de commander.
+              </p>
+            </div>
+            <input type="hidden" name="deliveryZones" value={JSON.stringify(deliveryZones)} />
+            {deliveryZones.map((zone, index) => (
+              <div key={zone.id} className="grid grid-cols-[minmax(0,1fr)_7rem_2.75rem] items-end gap-2 rounded-xl border border-white/10 bg-[#0F1E3D]/60 p-3">
+                <label className="min-w-0 text-[11px] font-semibold" style={{ color: "#C3CCE6" }}>
+                  Zone
+                  <input
+                    type="text"
+                    value={zone.name}
+                    maxLength={80}
+                    onChange={(event) => setDeliveryZones((current) => current.map((item, itemIndex) => itemIndex === index ? { ...item, name: event.target.value } : item))}
+                    placeholder="Ex. Parcelles Assainies"
+                    className="mt-1 w-full rounded-lg border border-ink px-3 py-2.5 text-sm font-bold outline-none focus:border-sun"
+                    style={{ backgroundColor: "#FFFBF2", color: "#0F1E3D" }}
+                  />
+                </label>
+                <label className="text-[11px] font-semibold" style={{ color: "#C3CCE6" }}>
+                  Tarif (FCFA)
+                  <input
+                    type="number"
+                    min={0}
+                    max={1000000}
+                    step={1}
+                    value={zone.fee}
+                    onChange={(event) => setDeliveryZones((current) => current.map((item, itemIndex) => itemIndex === index ? { ...item, fee: Number(event.target.value) } : item))}
+                    className="mt-1 w-full rounded-lg border border-ink px-3 py-2.5 text-sm font-bold outline-none focus:border-sun"
+                    style={{ backgroundColor: "#FFFBF2", color: "#0F1E3D" }}
+                  />
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setDeliveryZones((current) => current.filter((item) => item.id !== zone.id))}
+                  aria-label={`Supprimer la zone ${zone.name || index + 1}`}
+                  className="flex h-11 w-11 items-center justify-center rounded-xl border border-[#C8265A]/40 text-[#FF9EB8]"
+                >
+                  <Trash2 size={17} aria-hidden="true" />
+                </button>
+              </div>
+            ))}
+            {deliveryZones.length < 30 && (
+              <button
+                type="button"
+                onClick={() => setDeliveryZones((current) => [...current, { id: crypto.randomUUID(), name: "", fee: 0 }])}
+                className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-dashed border-white/30 px-4 text-xs font-bold text-white transition-colors hover:border-sun hover:text-sun"
+              >
+                <Plus size={16} aria-hidden="true" /> Ajouter une zone
+              </button>
+            )}
+          </div>
+
           <div>
-            <label className="block text-xs font-bold mb-1.5" style={{ color: "#C3CCE6" }}>Frais de livraison standard (FCFA)</label>
+            <label className="block text-xs font-bold mb-1.5" style={{ color: "#C3CCE6" }}>Tarif par défaut si aucune zone n’est définie (FCFA)</label>
             <input
               name="deliveryFee"
               type="number"
@@ -482,17 +552,30 @@ export default function ShopForm({ shop, publicOrigin, canUseMarketingTools }: {
           </div>
 
           <div className="flex items-center justify-between">
-            <span className="text-[15px] font-bold text-white">Boutique visible</span>
-            <label className="relative inline-block w-11 h-6">
-              <input
-                type="checkbox"
-                name="isPublished"
-                defaultChecked={shop?.isPublished ?? false}
-                className="peer sr-only"
-              />
-              <div className="w-11 h-6 rounded-full peer-checked:bg-[#0E7C66] bg-[#3A4A75] transition-colors"></div>
-              <div className="absolute left-[4px] top-[4px] w-4 h-4 rounded-full bg-white transition-all peer-checked:left-[22px]"></div>
-            </label>
+            <div className="min-w-0 pr-3">
+              <span className="text-[15px] font-bold text-white block">Boutique visible</span>
+              {isSuspended && (
+                <span className="text-[11px] font-bold text-[#FF8BA7] block mt-0.5">
+                  Suspendue par l&apos;administration — réactivation impossible
+                </span>
+              )}
+            </div>
+            {isSuspended ? (
+              <span className="px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-[#C8265A] text-white border border-white/20 shrink-0">
+                Suspendue
+              </span>
+            ) : (
+              <label className="relative inline-block w-11 h-6 shrink-0">
+                <input
+                  type="checkbox"
+                  name="isPublished"
+                  defaultChecked={shop?.isPublished ?? false}
+                  className="peer sr-only"
+                />
+                <div className="w-11 h-6 rounded-full peer-checked:bg-[#0E7C66] bg-[#3A4A75] transition-colors"></div>
+                <div className="absolute left-[4px] top-[4px] w-4 h-4 rounded-full bg-white transition-all peer-checked:left-[22px]"></div>
+              </label>
+            )}
           </div>
         </div>
 
