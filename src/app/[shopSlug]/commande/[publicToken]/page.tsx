@@ -236,10 +236,10 @@ export default async function OrderSuccessPage({
               </div>
             ))}
 
-            {order.deliveryFee > 0 && (
+            {(order.deliveryFee > 0 || order.deliveryZone) && (
               <div className="flex justify-between items-center gap-3 py-1 text-sm">
-                <span style={{ color: "#3F4B69" }}>Livraison</span>
-                <span className="shrink-0" style={{ color: "#3F4B69" }}>{formatFcfa(order.deliveryFee)}</span>
+                <span style={{ color: "#3F4B69" }}>{order.deliveryZone ? `Livraison · ${order.deliveryZone}` : "Livraison"}</span>
+                <span className="shrink-0" style={{ color: "#3F4B69" }}>{order.deliveryFee === 0 ? "Gratuite" : formatFcfa(order.deliveryFee)}</span>
               </div>
             )}
 

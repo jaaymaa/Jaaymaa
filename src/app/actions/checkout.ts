@@ -16,6 +16,7 @@ type CheckoutData = {
   customerName: string;
   customerPhone: string;
   customerAddress: string;
+  deliveryZoneId?: string;
   note?: string;
   paymentMethod: "wave" | "orange_money" | "cash";
   items: CheckoutItemInput[];
@@ -54,6 +55,7 @@ export async function createOrder(data: CheckoutData) {
       customerName: cleanName,
       customerPhone: phone,
       deliveryAddress: cleanAddress,
+      deliveryZoneId: data.deliveryZoneId?.trim() || undefined,
       note: data.note?.trim() || undefined,
       paymentMethod: data.paymentMethod,
       items: data.items.map((i) => ({

@@ -4,6 +4,7 @@ import { eq, and, isNull, gt, ne } from "drizzle-orm";
 import { getDb, users, sessions, shops, type AppDb } from "@/db";
 import { normalizePhone } from "@/lib/phone";
 import type { User, Shop } from "@/types/schema";
+import { parseDeliveryZones } from "@/lib/delivery-zones";
 
 const CURRENT_PBKDF2_ITERATIONS = 100_000;
 const LEGACY_PBKDF2_ITERATIONS = 10_000;
@@ -167,6 +168,7 @@ export async function validateSession(
         orangeMoneyNumber: shopRecord.orangeMoneyNumber,
         acceptsCash: Boolean(shopRecord.acceptsCash),
         deliveryFee: shopRecord.deliveryFee,
+        deliveryZones: parseDeliveryZones(shopRecord.deliveryZones) ?? [],
         deliveryNote: shopRecord.deliveryNote,
         logoUrl: shopRecord.logoUrl,
         logoKey: shopRecord.logoUrl,
@@ -342,6 +344,7 @@ export async function loginUser(
         orangeMoneyNumber: shopRecord.orangeMoneyNumber,
         acceptsCash: Boolean(shopRecord.acceptsCash),
         deliveryFee: shopRecord.deliveryFee,
+        deliveryZones: parseDeliveryZones(shopRecord.deliveryZones) ?? [],
         deliveryNote: shopRecord.deliveryNote,
         logoUrl: shopRecord.logoUrl,
         logoKey: shopRecord.logoUrl,

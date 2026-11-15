@@ -138,6 +138,7 @@ export default function OrderDetailView({ order }: { order: Order }) {
           {/* Adresse */}
           <div className="mb-4">
             <p className="text-xs font-bold mb-1" style={{ color: "#3F4B69" }}>Livraison</p>
+            {order.deliveryZone && <p className="text-sm font-bold text-[#0E7C66]">Zone : {order.deliveryZone}</p>}
             <p className="text-[15px] font-bold text-ink">{order.customerAddress || "Adresse non spécifiée"}</p>
           </div>
 

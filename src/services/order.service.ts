@@ -5,6 +5,7 @@ import { getDb, orders, orderItems, products, shops, type AppDb } from "@/db";
 import type { Order, OrderItem } from "@/types/schema";
 import { normalizePhone } from "@/lib/phone";
 import { normalizeShopRecord } from "./shop.service";
+import { parseDeliveryZones } from "@/lib/delivery-zones";
 
 function generatePublicToken(): string {
   return Buffer.from(randomBytes(16))
@@ -28,6 +29,7 @@ export async function createOrder(
     customerName: string;
     customerPhone: string;
     deliveryAddress: string;
+    deliveryZoneId?: string;
     note?: string;
     paymentMethod: "wave" | "orange_money" | "cash";
     items: Array<{
@@ -100,7 +102,24 @@ export async function createOrder(
     });
   }
 
-  const deliveryFee = Math.max(0, Math.floor(shop.deliveryFee || 0));
+  const deliveryZones = shop.deliveryZones == null || shop.deliveryZones === ""
+    ? []
+    : parseDeliveryZones(shop.deliveryZones);
+  if (!deliveryZones) {
+    throw new Error("Les zones de livraison de cette boutique sont momentanément indisponibles.");
+  }
+  let deliveryZone: string | null = null;
+  let deliveryFee = Math.max(0, Math.floor(shop.deliveryFee || 0));
+  if (deliveryZones.length > 0) {
+    const selectedZone = deliveryZones.find((zone) => zone.id === data.deliveryZoneId);
+    if (!selectedZone) {
+      throw new Error("Choisis une zone de livraison proposée par la boutique.");
+    }
+    deliveryZone = selectedZone.name;
+    deliveryFee = selectedZone.fee;
+  } else if (data.deliveryZoneId) {
+    throw new Error("Cette zone de livraison n’est plus disponible. Actualise la page et réessaie.");
+  }
   const total = subtotal + deliveryFee;
 
   const orderId = ulid();
@@ -128,6 +147,7 @@ export async function createOrder(
     customerName,
     customerPhone: phone,
     deliveryAddress,
+    deliveryZone,
     note: data.note?.trim() || null,
     paymentMethod: data.paymentMethod,
     paymentStatus: "pending",
@@ -160,6 +180,7 @@ export async function createOrder(
     customerName,
     customerPhone: phone,
     customerAddress: deliveryAddress,
+    deliveryZone,
     note: data.note?.trim() || null,
     paymentMethod: data.paymentMethod,
     paymentStatus: "pending",
@@ -236,6 +257,7 @@ export async function getOrderByPublicToken(
     customerName: orderRecord.customerName,
     customerPhone: orderRecord.customerPhone,
     customerAddress: orderRecord.deliveryAddress,
+    deliveryZone: orderRecord.deliveryZone,
     note: orderRecord.note,
     paymentMethod: orderRecord.paymentMethod,
     paymentStatus: orderRecord.paymentStatus,
@@ -335,6 +357,7 @@ export async function listOrdersByShop(
       customerName: o.customerName,
       customerPhone: o.customerPhone,
       customerAddress: o.deliveryAddress,
+      deliveryZone: o.deliveryZone,
       note: o.note,
       paymentMethod: o.paymentMethod,
       paymentStatus: o.paymentStatus,

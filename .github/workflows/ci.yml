@@ -1,4 +1,4 @@
-name: 🚀 CI / CD — Jaayma
+name: CI/CD Pipeline
 
 on:
   push:
@@ -6,7 +6,6 @@ on:
   pull_request:
     branches: [main]
 
-# Annule les runs en cours si un nouveau push arrive sur la même branche
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -14,15 +13,12 @@ concurrency:
 env:
   NODE_VERSION: "22"
 
-# ─────────────────────────────────────────────────────────────
-# JOB 1 — Lint + Types
-# ─────────────────────────────────────────────────────────────
 jobs:
   lint:
-    name: 🔍 Lint & Types
+    name: Lint and Type Check
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Setup Node.js ${{ env.NODE_VERSION }}
@@ -34,20 +30,17 @@ jobs:
       - name: Install dependencies
         run: npm ci --prefer-offline
 
-      - name: ESLint
+      - name: Run ESLint
         run: npm run lint
 
-      - name: TypeScript — vérification des types
+      - name: Run TypeScript type check
         run: npx tsc --noEmit
 
-# ─────────────────────────────────────────────────────────────
-# JOB 2 — Tests unitaires
-# ─────────────────────────────────────────────────────────────
   test:
-    name: 🧪 Tests unitaires
+    name: Unit Tests
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Setup Node.js ${{ env.NODE_VERSION }}
@@ -59,18 +52,14 @@ jobs:
       - name: Install dependencies
         run: npm ci --prefer-offline
 
-      - name: Vitest
+      - name: Run Vitest
         run: npm test -- --reporter=verbose
 
-# ─────────────────────────────────────────────────────────────
-# JOB 3 — Build Cloudflare (OpenNext)
-# Lance en parallèle avec lint & test pour gagner du temps
-# ─────────────────────────────────────────────────────────────
   build:
-    name: 🏗️ Build Cloudflare Worker
+    name: Build Cloudflare Worker
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Setup Node.js ${{ env.NODE_VERSION }}
@@ -82,10 +71,9 @@ jobs:
       - name: Install dependencies
         run: npm ci --prefer-offline
 
-      - name: Build OpenNext / Cloudflare Worker
+      - name: Build OpenNext Cloudflare Worker
         run: npm run build:cloudflare
 
-      # Mise en cache de l'artefact de build pour le job deploy
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
@@ -94,21 +82,17 @@ jobs:
           retention-days: 1
           if-no-files-found: error
 
-# ─────────────────────────────────────────────────────────────
-# JOB 4 — Deploy (uniquement sur push main, après lint+test+build OK)
-# ─────────────────────────────────────────────────────────────
   deploy:
-    name: 🌍 Deploy → Cloudflare Workers
+    name: Deploy to Cloudflare Workers
     runs-on: ubuntu-latest
     needs: [lint, test, build]
-    # Ne déploie que sur push (pas sur les PRs)
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     environment:
       name: production
       url: https://jaayma-sn.jaayma.workers.dev
 
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Setup Node.js ${{ env.NODE_VERSION }}
@@ -117,10 +101,9 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
 
-      - name: Install dependencies (prod + wrangler)
+      - name: Install dependencies
         run: npm ci --prefer-offline
 
-      # Récupère l'artefact du build (évite de rebuilder)
       - name: Download build artifact
         uses: actions/download-artifact@v4
         with:
@@ -133,14 +116,14 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
-      - name: Résumé du déploiement
+      - name: Deployment summary
         run: |
-          echo "## 🚀 Déploiement réussi" >> $GITHUB_STEP_SUMMARY
+          echo "## Deployment Report" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "| Champ | Valeur |" >> $GITHUB_STEP_SUMMARY
-          echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
-          echo "| **Worker** | jaayma-sn |" >> $GITHUB_STEP_SUMMARY
-          echo "| **URL** | https://jaayma-sn.jaayma.workers.dev |" >> $GITHUB_STEP_SUMMARY
-          echo "| **Commit** | \`${{ github.sha }}\` |" >> $GITHUB_STEP_SUMMARY
-          echo "| **Branche** | \`${{ github.ref_name }}\` |" >> $GITHUB_STEP_SUMMARY
-          echo "| **Auteur** | ${{ github.actor }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Field | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Worker | jaayma-sn |" >> $GITHUB_STEP_SUMMARY
+          echo "| URL | https://jaayma-sn.jaayma.workers.dev |" >> $GITHUB_STEP_SUMMARY
+          echo "| Commit | \`${{ github.sha }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Branch | \`${{ github.ref_name }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Triggered by | ${{ github.actor }} |" >> $GITHUB_STEP_SUMMARY
