@@ -22,7 +22,7 @@ export default function ShopQrCode({
   shopLogoUrl?: string | null;
 }) {
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
-  const [busy, setBusy] = useState<"download" | "share" | null>(null);
+  const [busy, setBusy] = useState<"download" | "download-qr" | "share" | null>(null);
   const [message, setMessage] = useState("");
   const themeColor = SHOP_THEMES.find(({ value }) => value === selectedThemeColor)?.value ?? DEFAULT_SHOP_THEME;
   const themeForeground = getShopThemeForeground(themeColor);
@@ -33,7 +33,7 @@ export default function ShopQrCode({
     QRCode.toDataURL(shopUrl, {
       errorCorrectionLevel: "H",
       margin: 2,
-      width: 420,
+      width: 480,
       color: { dark: qrColor, light: "#FFFFFF" },
     })
       .then((dataUrl) => {
@@ -53,10 +53,24 @@ export default function ShopQrCode({
     setMessage("");
     try {
       const image = await createShareCard();
-      downloadBlob(image, getFileName());
-      setMessage("QR téléchargé. Tu peux l’imprimer ou l’envoyer à tes clients.");
+      downloadBlob(image, getFileName("affiche"));
+      setMessage("Affiche HD téléchargée (2160x2700). Parfaite pour imprimer ou partager.");
     } catch {
-      setMessage("Le téléchargement du QR a échoué. Réessaie dans un instant.");
+      setMessage("Le téléchargement de l'affiche a échoué. Réessaie dans un instant.");
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function handleDownloadQrOnly() {
+    setBusy("download-qr");
+    setMessage("");
+    try {
+      const image = await createQrOnly();
+      downloadBlob(image, getFileName("qr-seul"));
+      setMessage("QR code seul téléchargé en haute résolution (PNG).");
+    } catch {
+      setMessage("Le téléchargement du QR code a échoué. Réessaie dans un instant.");
     } finally {
       setBusy(null);
     }
@@ -67,7 +81,7 @@ export default function ShopQrCode({
     setMessage("");
     try {
       const image = await createShareCard();
-      const file = new File([image], getFileName(), { type: "image/png" });
+      const file = new File([image], getFileName("affiche"), { type: "image/png" });
 
       if (typeof navigator.share === "function" && navigator.canShare?.({ files: [file] })) {
         await navigator.share({
@@ -75,109 +89,233 @@ export default function ShopQrCode({
           text: `Scanne ce QR code pour découvrir la boutique ${shopName} sur Jaaymaa.`,
           files: [file],
         });
-        setMessage("QR code partagé.");
+        setMessage("Affiche partagée.");
       } else {
         downloadBlob(image, file.name);
-        setMessage("QR téléchargé. Tu peux maintenant le partager sur WhatsApp.");
+        setMessage("Affiche téléchargée. Tu peux maintenant la partager sur WhatsApp ou Instagram.");
       }
     } catch (error) {
       if (error instanceof Error && error.name === "AbortError") return;
-      setMessage("Le partage du QR a échoué. Tu peux le télécharger et le partager manuellement.");
+      setMessage("Le partage a échoué. Tu peux télécharger l'affiche et la partager manuellement.");
     } finally {
       setBusy(null);
     }
   }
 
-  function getFileName() {
+  function getFileName(suffix: "affiche" | "qr-seul") {
     const safeName = shopName
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "")
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-|-$/g, "");
-    return `jaaymaa-qr-${safeName || "boutique"}.png`;
+    return `jaaymaa-${suffix}-${safeName || "boutique"}.png`;
   }
 
-  async function createShareCard(): Promise<Blob> {
-    const qr = qrDataUrl ?? (await QRCode.toDataURL(shopUrl, {
+  async function createQrOnly(): Promise<Blob> {
+    const size = 1200;
+    const qrHighRes = await QRCode.toDataURL(shopUrl, {
       errorCorrectionLevel: "H",
       margin: 2,
-      width: 420,
+      width: size,
       color: { dark: qrColor, light: "#FFFFFF" },
-    }));
-    const [qrImage, brandImage, shopImage] = await Promise.all([
-      loadImage(qr),
+    });
+
+    const [qrImage, brandImage] = await Promise.all([
+      loadImage(qrHighRes),
       loadImage(JAAYMAA_ICON),
-      shopLogoUrl ? loadImage(shopLogoUrl, true).catch(() => null) : Promise.resolve(null),
     ]);
+
     const canvas = document.createElement("canvas");
-    canvas.width = 1080;
-    canvas.height = 1350;
+    canvas.width = size;
+    canvas.height = size;
     const context = canvas.getContext("2d");
     if (!context) throw new Error("Canvas indisponible");
 
-    context.fillStyle = BRAND_INK;
-    context.fillRect(0, 0, canvas.width, canvas.height);
-    context.fillStyle = CREAM;
-    context.fillRect(12, 12, canvas.width - 24, canvas.height - 24);
-    context.fillStyle = themeColor;
-    context.fillRect(12, 12, canvas.width - 24, 260);
+    context.imageSmoothingEnabled = true;
+    context.imageSmoothingQuality = "high";
 
-    // Jaaymaa branding and the merchant's own logo share the header.
-    context.drawImage(brandImage, 58, 48, 80, 80);
+    context.drawImage(qrImage, 0, 0, size, size);
+    drawBrandBadge(context, size / 2, size / 2, Math.round(size * 0.2), brandImage, themeColor);
+
+    return new Promise((resolve, reject) => {
+      canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error("Image indisponible"))), "image/png");
+    });
+  }
+
+  async function createShareCard(): Promise<Blob> {
+    if (typeof document !== "undefined" && document.fonts?.ready) {
+      try {
+        await document.fonts.ready;
+      } catch {
+        // Fallback sans bloquer
+      }
+    }
+
+    const SCALE = 2; // Rendu Ultra HD (2160x2700) pour une netteté parfaite à l'écran et à l'impression
+    const BASE_WIDTH = 1080;
+    const BASE_HEIGHT = 1350;
+
+    // Génération du QR code directement à la résolution physique du canvas (1160px) pour éviter tout flou
+    const qrPixelSize = 580 * SCALE;
+    const qrHighRes = await QRCode.toDataURL(shopUrl, {
+      errorCorrectionLevel: "H",
+      margin: 2,
+      width: qrPixelSize,
+      color: { dark: qrColor, light: "#FFFFFF" },
+    });
+
+    const [qrImage, brandImage, shopImage] = await Promise.all([
+      loadImage(qrHighRes),
+      loadImage(JAAYMAA_ICON),
+      shopLogoUrl ? loadImage(shopLogoUrl, true).catch(() => null) : Promise.resolve(null),
+    ]);
+
+    const canvas = document.createElement("canvas");
+    canvas.width = BASE_WIDTH * SCALE;
+    canvas.height = BASE_HEIGHT * SCALE;
+    const context = canvas.getContext("2d");
+    if (!context) throw new Error("Canvas indisponible");
+
+    context.imageSmoothingEnabled = true;
+    context.imageSmoothingQuality = "high";
+    context.scale(SCALE, SCALE);
+
+    // Fond et encadrement
+    context.fillStyle = BRAND_INK;
+    context.fillRect(0, 0, BASE_WIDTH, BASE_HEIGHT);
+
+    context.fillStyle = CREAM;
+    context.fillRect(14, 14, BASE_WIDTH - 28, BASE_HEIGHT - 28);
+
+    // En-tête coloré harmonieux
+    const headerHeight = 210;
+    context.fillStyle = themeColor;
+    context.fillRect(14, 14, BASE_WIDTH - 28, headerHeight);
+
+    const headerCenterY = 14 + headerHeight / 2; // 119px
+
+    // Logo Jaaymaa + texte en-tête
+    context.drawImage(brandImage, 56, headerCenterY - 38, 76, 76);
+
     context.textAlign = "left";
     context.textBaseline = "middle";
     context.fillStyle = themeForeground;
-    context.font = "900 42px Arial, sans-serif";
-    context.fillText("JAAYMAA", 155, 88);
-    context.font = "700 22px Arial, sans-serif";
-    context.fillText("TA BOUTIQUE EN UN SCAN", 156, 128);
+    context.font = getCanvasFont(900, 42, "title");
+    context.fillText("JAAYMAA", 148, headerCenterY - 18);
+    context.font = getCanvasFont(700, 20, "body");
+    context.fillText("TA BOUTIQUE EN UN SCAN", 150, headerCenterY + 20);
+
+    // Badge Logo boutique (ou initiale du commerçant)
+    const logoCenterX = 930;
+    const logoCenterY = headerCenterY;
+    const logoRadius = 54;
 
     if (shopImage) {
       context.save();
       context.beginPath();
-      context.arc(930, 91, 56, 0, Math.PI * 2);
-      context.clip();
+      context.arc(logoCenterX, logoCenterY, logoRadius, 0, Math.PI * 2);
       context.fillStyle = "#FFFFFF";
-      context.fillRect(874, 35, 112, 112);
-      drawImageContain(context, shopImage, 884, 45, 92, 92);
-      context.restore();
-      context.strokeStyle = themeForeground;
-      context.lineWidth = 5;
+      context.fill();
+
       context.beginPath();
-      context.arc(930, 91, 56, 0, Math.PI * 2);
+      context.arc(logoCenterX, logoCenterY, logoRadius - 4, 0, Math.PI * 2);
+      context.clip();
+      drawImageContain(
+        context,
+        shopImage,
+        logoCenterX - (logoRadius - 8),
+        logoCenterY - (logoRadius - 8),
+        (logoRadius - 8) * 2,
+        (logoRadius - 8) * 2
+      );
+      context.restore();
+
+      // Contour net anti-aliasé
+      context.beginPath();
+      context.arc(logoCenterX, logoCenterY, logoRadius, 0, Math.PI * 2);
+      context.strokeStyle = themeForeground;
+      context.lineWidth = 6;
       context.stroke();
+    } else {
+      context.save();
+      context.beginPath();
+      context.arc(logoCenterX, logoCenterY, logoRadius, 0, Math.PI * 2);
+      context.fillStyle = "#FFFFFF";
+      context.fill();
+      context.strokeStyle = themeForeground;
+      context.lineWidth = 6;
+      context.stroke();
+
+      context.textAlign = "center";
+      context.textBaseline = "middle";
+      context.fillStyle = BRAND_INK;
+      context.font = getCanvasFont(900, 38, "title");
+      const initial = shopName.trim().charAt(0).toUpperCase() || "B";
+      context.fillText(initial, logoCenterX, logoCenterY);
+      context.restore();
     }
 
+    // Titres principaux
     context.textAlign = "center";
+    context.textBaseline = "middle";
     context.fillStyle = BRAND_INK;
-    context.font = "900 54px Arial, sans-serif";
-    context.fillText("DÉCOUVREZ NOTRE BOUTIQUE", canvas.width / 2, 330, 930);
-    context.fillStyle = themeColor;
-    context.font = "900 52px Arial, sans-serif";
-    context.fillText(shopName, canvas.width / 2, 412, 900);
+    context.font = getCanvasFont(900, 48, "title");
+    context.fillText("DÉCOUVREZ NOTRE BOUTIQUE", BASE_WIDTH / 2, 310, 930);
 
-    // Keep a broad white quiet zone around the colored QR for reliable scanning.
+    const shopTitleColor =
+      contrastRatio(parseHexColor(themeColor) ?? [15, 30, 61], [255, 251, 242]) >= 3
+        ? themeColor
+        : BRAND_INK;
+    context.fillStyle = shopTitleColor;
+    context.font = getCanvasFont(900, 52, "title");
+    context.fillText(shopName, BASE_WIDTH / 2, 385, 900);
+
+    // Zone du QR code encadré aux couleurs de la boutique
+    const qrBoxSize = 670;
+    const qrBoxX = (BASE_WIDTH - qrBoxSize) / 2; // 205
+    const qrBoxY = 450;
+    const innerBoxPadding = 12;
+    const innerBoxSize = qrBoxSize - innerBoxPadding * 2; // 646
+
     context.fillStyle = themeColor;
-    context.fillRect(201, 470, 678, 678);
+    context.fillRect(qrBoxX, qrBoxY, qrBoxSize, qrBoxSize);
     context.fillStyle = "#FFFFFF";
-    context.fillRect(213, 482, 654, 654);
-    context.drawImage(qrImage, 251, 520, 578, 578);
-    drawBrandBadge(context, canvas.width / 2, 809, 112, brandImage, themeColor);
+    context.fillRect(qrBoxX + innerBoxPadding, qrBoxY + innerBoxPadding, innerBoxSize, innerBoxSize);
 
+    // QR Code net à l'échelle 1:1 physique
+    const qrDisplaySize = 580;
+    const qrX = (BASE_WIDTH - qrDisplaySize) / 2; // 250
+    const qrY = qrBoxY + (qrBoxSize - qrDisplaySize) / 2; // 495
+    context.drawImage(qrImage, qrX, qrY, qrDisplaySize, qrDisplaySize);
+
+    // Badge Jaaymaa central dans le QR code
+    const badgeSize = 114;
+    drawBrandBadge(context, BASE_WIDTH / 2, qrY + qrDisplaySize / 2, badgeSize, brandImage, themeColor);
+
+    // Instructions et lien
     context.fillStyle = BRAND_INK;
-    context.font = "800 30px Arial, sans-serif";
-    context.fillText("Scannez ce code avec votre téléphone", canvas.width / 2, 1190, 950);
-    context.font = "600 24px Arial, sans-serif";
+    context.font = getCanvasFont(800, 28, "body");
+    context.fillText("Scannez ce code avec votre téléphone", BASE_WIDTH / 2, 1170, 950);
+
+    context.font = getCanvasFont(700, 24, "body");
     context.fillStyle = "#3F4B69";
-    const destination = new URL(shopUrl);
-    context.fillText(destination.host + destination.pathname, canvas.width / 2, 1238, 950);
+    try {
+      const destination = new URL(shopUrl);
+      context.fillText(destination.host + destination.pathname, BASE_WIDTH / 2, 1215, 950);
+    } catch {
+      context.fillText(shopUrl, BASE_WIDTH / 2, 1215, 950);
+    }
 
+    // Pied de page
+    const footerY = 1262;
+    const footerHeight = 74;
     context.fillStyle = BRAND_INK;
-    context.fillRect(12, 1270, canvas.width - 24, 68);
+    context.fillRect(14, footerY, BASE_WIDTH - 28, footerHeight);
+
     context.fillStyle = "#FFFBF2";
-    context.font = "800 24px Arial, sans-serif";
-    context.fillText("Une boutique en ligne avec Jaaymaa", canvas.width / 2, 1304);
+    context.font = getCanvasFont(800, 24, "title");
+    context.fillText("Une boutique en ligne avec Jaaymaa", BASE_WIDTH / 2, footerY + footerHeight / 2);
 
     return new Promise((resolve, reject) => {
       canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error("Image indisponible"))), "image/png");
@@ -234,25 +372,58 @@ export default function ShopQrCode({
           type="button"
           onClick={handleDownload}
           disabled={!qrDataUrl || busy !== null}
-          className="inline-flex min-h-10 items-center justify-center gap-1 rounded-xl border-2 border-ink bg-white px-2 text-[10px] font-black disabled:opacity-50"
+          className="inline-flex min-h-10 items-center justify-center gap-1 rounded-xl border-2 border-ink bg-white px-2 text-[10px] font-black transition-colors hover:bg-[#FFFBF2] disabled:opacity-50"
+          title="Télécharger l'affiche complète en haute définition (2160x2700)"
         >
           {busy === "download" ? <JaaymaLoader size={28} /> : <Download size={13} />}
-          Télécharger
+          Affiche HD
         </button>
         <button
           type="button"
           onClick={handleShare}
           disabled={!qrDataUrl || busy !== null}
-          className="inline-flex min-h-10 items-center justify-center gap-1 rounded-xl border-2 border-ink px-2 text-[10px] font-black disabled:opacity-50"
+          className="inline-flex min-h-10 items-center justify-center gap-1 rounded-xl border-2 border-ink px-2 text-[10px] font-black transition-opacity hover:opacity-90 disabled:opacity-50"
           style={{ backgroundColor: themeColor, color: themeForeground }}
+          title="Partager l'affiche sur WhatsApp ou réseaux"
         >
           {busy === "share" ? <JaaymaLoader variant={themeForeground === BRAND_INK ? "mini-ink" : "mini"} size={28} /> : <Share2 size={13} />}
           Partager
         </button>
       </div>
+
+      <button
+        type="button"
+        onClick={handleDownloadQrOnly}
+        disabled={!qrDataUrl || busy !== null}
+        className="mt-2 flex w-full items-center justify-center gap-1 rounded-lg py-1 text-center text-[11px] font-bold text-[#65708A] transition-colors hover:text-ink disabled:opacity-50"
+        title="Télécharger uniquement le QR code en PNG haute résolution (1200x1200)"
+      >
+        {busy === "download-qr" ? <JaaymaLoader size={20} /> : <QrCode size={12} />}
+        Télécharger le QR seul (HD)
+      </button>
+
       {message && <p role="status" className="mt-2 text-[10px] font-semibold leading-4 text-[#3F4B69]">{message}</p>}
     </section>
   );
+}
+
+function getCanvasFont(weight: number | string, size: number, type: "title" | "body" = "title"): string {
+  let family =
+    type === "title"
+      ? '"Bricolage Grotesque", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+      : '"Instrument Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+
+  if (typeof window !== "undefined" && typeof document !== "undefined") {
+    const cssVar = type === "title" ? "--font-bricolage" : "--font-instrument";
+    const computed =
+      getComputedStyle(document.documentElement).getPropertyValue(cssVar).trim() ||
+      getComputedStyle(document.body).getPropertyValue(cssVar).trim();
+    if (computed) {
+      family = `${computed}, ${family}`;
+    }
+  }
+
+  return `${weight} ${size}px ${family}`;
 }
 
 function getScanSafeColor(color: string) {
@@ -301,13 +472,32 @@ function drawBrandBadge(
 ) {
   const x = centerX - size / 2;
   const y = centerY - size / 2;
-  roundedRect(context, x, y, size, size, 22);
+  const radius = Math.round(size * 0.2);
+
+  // Fond blanc du badge
+  roundedRect(context, x, y, size, size, radius);
   context.fillStyle = "#FFFFFF";
   context.fill();
+
+  // Bordure avec la couleur du thème
   context.strokeStyle = borderColor;
-  context.lineWidth = 7;
+  context.lineWidth = 6;
   context.stroke();
-  context.drawImage(brandImage, x + 12, y + 12, size - 24, size - 24);
+
+  // Dessin de l'icône Jaaymaa avec coins arrondis
+  const innerPad = Math.round(size * 0.11);
+  const innerSize = size - innerPad * 2;
+  context.save();
+  roundedRect(context, x + innerPad, y + innerPad, innerSize, innerSize, Math.max(4, radius - 4));
+  context.clip();
+  context.drawImage(brandImage, x + innerPad, y + innerPad, innerSize, innerSize);
+  context.restore();
+
+  // Re-contour net
+  roundedRect(context, x, y, size, size, radius);
+  context.strokeStyle = borderColor;
+  context.lineWidth = 6;
+  context.stroke();
 }
 
 function drawImageContain(context: CanvasRenderingContext2D, image: HTMLImageElement, x: number, y: number, width: number, height: number) {
