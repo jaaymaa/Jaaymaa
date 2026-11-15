@@ -29,6 +29,7 @@ import { getEffectivePlan, getProDaysRemaining, getProUrgency } from "@/lib/plan
 import type { Order } from "@/types/schema";
 import ShareShopButton from "./ShareShopButton";
 import ShopQrCode from "./ShopQrCode";
+import SalesActivityChart from "./_components/SalesActivityChart";
 
 export const metadata = {
   title: "Accueil - Espace Vendeur Jaaymaa",
@@ -74,10 +75,6 @@ function StatCard({
       </p>
     </article>
   );
-}
-
-function getDateKey(date: Date) {
-  return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}-${String(date.getUTCDate()).padStart(2, "0")}`;
 }
 
 function toDate(value: string | number | Date) {
@@ -136,7 +133,6 @@ export default async function DashboardPage() {
   startOfToday.setUTCHours(0, 0, 0, 0);
   const startOfTomorrow = new Date(startOfToday);
   startOfTomorrow.setUTCDate(startOfTomorrow.getUTCDate() + 1);
-  const todayKey = getDateKey(startOfToday);
 
   const paidOrders = ordersList.filter(
     (order) => String(order.paymentStatus).toLowerCase() === "paid"
@@ -201,24 +197,12 @@ export default async function DashboardPage() {
   const completedSetupSteps = setupSteps.filter((step) => step.complete).length;
   const setupProgress = Math.round((completedSetupSteps / setupSteps.length) * 100);
 
-  const weekDays = Array.from({ length: 7 }, (_, index) => {
-    const date = new Date(startOfToday);
-    date.setUTCDate(date.getUTCDate() - (6 - index));
-    return { date, key: getDateKey(date) };
-  });
-  const revenueByDay = new Map<string, number>();
-  for (const order of paidOrders) {
-    const key = getDateKey(toDate(order.createdAt));
-    revenueByDay.set(key, (revenueByDay.get(key) ?? 0) + (order.total || 0));
-  }
-  const weeklyRevenue = weekDays.map(({ date, key }) => ({
-    key,
-    date,
-    amount: revenueByDay.get(key) ?? 0,
-    isToday: key === todayKey,
+  const ordersData = ordersList.map((o) => ({
+    id: o.id,
+    createdAt: toDate(o.createdAt).toISOString(),
+    total: o.total || 0,
+    paymentStatus: o.paymentStatus || "pending",
   }));
-  const maxRevenue = Math.max(1, ...weeklyRevenue.map((day) => day.amount));
-  const totalWeekRevenue = weeklyRevenue.reduce((sum, day) => sum + day.amount, 0);
 
   const last30DaysStart = new Date(startOfToday);
   last30DaysStart.setUTCDate(last30DaysStart.getUTCDate() - 29);
@@ -523,47 +507,7 @@ export default async function DashboardPage() {
       </section>
 
       <section className="grid gap-5 lg:grid-cols-[1.15fr_0.85fr]">
-        <article className={`${CARD_CLASS} p-5 sm:p-6`}>
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div>
-              <p className="text-xs font-black uppercase tracking-[0.12em] text-[#C8265A]">Activité</p>
-              <h2 className="mt-1 font-bricolage text-xl font-black sm:text-2xl">Ventes des 7 derniers jours</h2>
-            </div>
-            <p className="rounded-full border-2 border-ink bg-[#F4F0E7] px-3 py-1.5 text-xs font-bold text-[#3F4B69]">
-              {formatFcfa(totalWeekRevenue)} sur 7 jours
-            </p>
-          </div>
-
-          <div className="mt-7 flex h-40 items-end gap-2 sm:gap-3">
-            {weeklyRevenue.map((day) => {
-              const height = day.amount > 0 ? Math.max(10, (day.amount / maxRevenue) * 100) : 4;
-              const dayLabel = new Intl.DateTimeFormat("fr-FR", {
-                weekday: "short",
-                timeZone: "Africa/Dakar",
-              })
-                .format(day.date)
-                .replace(".", "");
-
-              return (
-                <div key={day.key} className="group flex h-full flex-1 flex-col items-center justify-end gap-2">
-                  <div className="flex w-full flex-1 items-end overflow-hidden rounded-t-xl bg-[#F0EDE8]">
-                    <div
-                      title={`${dayLabel}: ${formatFcfa(day.amount)}`}
-                      className={`w-full rounded-t-xl border-x border-t border-ink transition-[height] ${day.isToday ? "bg-[#FFC83D]" : "bg-[#CFEFE6]"}`}
-                      style={{ height: `${height}%` }}
-                    />
-                  </div>
-                  <span className={`text-[10px] font-black uppercase sm:text-xs ${day.isToday ? "text-[#C8265A]" : "text-[#65708A]"}`}>
-                    {dayLabel}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-          <p className="mt-4 border-t border-ink/15 pt-3 text-xs font-medium text-[#3F4B69]">
-            Les montants affichés correspondent aux commandes marquées comme payées.
-          </p>
-        </article>
+        <SalesActivityChart orders={ordersData} />
 
         <article className={`${CARD_CLASS} p-5 sm:p-6`}>
           <div className="flex items-start justify-between gap-3">
