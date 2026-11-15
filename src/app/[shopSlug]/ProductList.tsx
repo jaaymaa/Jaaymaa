@@ -10,7 +10,81 @@ import ConfirmModal from "@/components/ConfirmModal";
 import FormattedDescription from "@/components/FormattedDescription";
 import { trackAnalyticsEvent } from "@/lib/analytics";
 import { getImageUrl } from "@/lib/images";
-import { Video } from "lucide-react";
+import { Video, Play } from "lucide-react";
+
+/* ─── VideoThumb : capture la 1ère frame via canvas avec fallback video ─── */
+function VideoThumb({ src, className }: { src: string; className?: string }) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [thumb, setThumb] = useState<string | null>(null);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    let done = false;
+
+    const captureFrame = () => {
+      if (done || video.readyState < 2) return;
+      try {
+        const canvas = document.createElement("canvas");
+        canvas.width = video.videoWidth || 160;
+        canvas.height = video.videoHeight || 90;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return;
+        ctx.drawImage(video, 0, 0);
+        const url = canvas.toDataURL("image/jpeg", 0.75);
+        if (url && url.length > 50) {
+          done = true;
+          setThumb(url);
+        }
+      } catch {
+        // canvas tainted or CORS — browser native video frame remains visible
+      }
+    };
+
+    const handleLoadedData = () => {
+      try {
+        video.currentTime = Math.min(0.5, video.duration && !isNaN(video.duration) ? video.duration * 0.1 : 0.5);
+      } catch {
+        captureFrame();
+      }
+    };
+
+    const handleSeeked = () => captureFrame();
+
+    video.addEventListener("loadeddata", handleLoadedData);
+    video.addEventListener("seeked", handleSeeked);
+    if (video.readyState >= 2) {
+      captureFrame();
+    }
+
+    return () => {
+      video.removeEventListener("loadeddata", handleLoadedData);
+      video.removeEventListener("seeked", handleSeeked);
+    };
+  }, [src]);
+
+  const videoSrcWithFragment = src.includes("#") ? src : `${src}#t=0.001`;
+
+  if (thumb) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img src={thumb} alt="" className={className} />
+    );
+  }
+
+  return (
+    <video
+      ref={videoRef}
+      src={videoSrcWithFragment}
+      muted
+      playsInline
+      preload="metadata"
+      crossOrigin="anonymous"
+      className={className}
+      style={{ pointerEvents: "none" }}
+    />
+  );
+}
 
 /* ─── Product modal (fiche produit — design 04) ─── */
 type ProductCard = Product & { imageUrl?: string | null; imageUrls?: string[]; _count?: { images: number } };
@@ -264,7 +338,7 @@ function ProductModal({
           {mediaItems[activeMediaIndex]?.type === "video" ? (
             <div className="w-full h-full bg-black flex items-center justify-center">
               <video
-                src={mediaItems[activeMediaIndex].url}
+                src={mediaItems[activeMediaIndex].url.includes("#") ? mediaItems[activeMediaIndex].url : `${mediaItems[activeMediaIndex].url}#t=0.001`}
                 controls
                 playsInline
                 preload="metadata"
@@ -334,12 +408,20 @@ function ProductModal({
                     aria-label="Afficher la vidéo"
                     aria-pressed={isSelected}
                     onClick={() => setActiveMediaIndex(index)}
-                    className={`h-14 w-14 shrink-0 overflow-hidden rounded-lg border-2 flex flex-col items-center justify-center gap-0.5 bg-[#0F1E3D] text-[#FFC83D] transition-all ${
+                    className={`h-14 w-14 shrink-0 overflow-hidden rounded-lg border-2 relative transition-all ${
                       isSelected ? "border-[#FFC83D] ring-2 ring-[#FFC83D]/40" : "border-ink/30 opacity-80"
                     }`}
                   >
-                    <Video className="w-5 h-5 text-[#FFC83D]" />
-                    <span className="text-[9px] font-black uppercase tracking-tight">Vidéo</span>
+                    <VideoThumb
+                      src={item.url}
+                      className="w-full h-full object-cover"
+                    />
+                    {/* Play overlay */}
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                      <div className="w-5 h-5 rounded-full bg-white/90 flex items-center justify-center">
+                        <Play className="w-2.5 h-2.5 text-ink fill-ink ml-0.5" />
+                      </div>
+                    </div>
                   </button>
                 );
               }

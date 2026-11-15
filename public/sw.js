@@ -1,6 +1,6 @@
 // Jaay minimal service worker
-const CACHE_NAME = "jaay-cache-v3";
-const IMAGE_CACHE_NAME = "jaay-images-v1";
+const CACHE_NAME = "jaay-cache-v4";
+const IMAGE_CACHE_NAME = "jaay-images-v2";
 const MAX_CACHED_IMAGES = 120;
 const OFFLINE_URL = "/offline.html";
 
@@ -36,6 +36,17 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
+
+  // Never intercept video/audio or Range streaming requests; let the browser stream natively
+  if (
+    event.request.headers.has("range") ||
+    event.request.destination === "video" ||
+    event.request.destination === "audio" ||
+    /\.(mp4|webm|mov|avi|m4v|ogg)$/i.test(url.pathname)
+  ) {
+    return;
+  }
+
   const isAppImage =
     event.request.method === "GET" &&
     url.origin === self.location.origin &&

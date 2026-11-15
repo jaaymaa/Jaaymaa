@@ -70,6 +70,7 @@ export async function GET(
     object.writeHttpMetadata(headers as unknown as Headers);
     headers.set("etag", object.httpEtag);
     headers.set("accept-ranges", "bytes");
+    headers.set("access-control-allow-origin", "*");
 
     if (!headers.has("content-type")) {
       const ext = key.split(".").pop()?.toLowerCase();

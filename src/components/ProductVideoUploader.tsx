@@ -88,7 +88,7 @@ export default function ProductVideoUploader({
             ) : videoSrc ? (
               <>
                 <video
-                  src={videoSrc}
+                  src={videoSrc.includes("#") ? videoSrc : `${videoSrc}#t=0.001`}
                   className="w-full h-full object-cover"
                   muted
                   playsInline
