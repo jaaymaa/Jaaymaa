@@ -175,6 +175,7 @@ export async function createOrder(
   return {
     id: orderId,
     reference,
+    number: reference,
     publicToken,
     shopId: data.shopId,
     customerName,
@@ -252,6 +253,7 @@ export async function getOrderByPublicToken(
   return {
     id: orderRecord.id,
     reference: orderRecord.reference,
+    number: orderRecord.reference,
     publicToken: orderRecord.publicToken,
     shopId: orderRecord.shopId,
     customerName: orderRecord.customerName,
@@ -352,6 +354,7 @@ export async function listOrdersByShop(
     return {
       id: o.id,
       reference: o.reference,
+      number: o.reference,
       publicToken: o.publicToken,
       shopId: o.shopId,
       customerName: o.customerName,

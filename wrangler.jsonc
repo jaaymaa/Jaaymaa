@@ -25,7 +25,8 @@
     {
       "binding": "DB",
       "database_name": "jaayma-db",
-      "database_id": "5fb9f57b-ca34-4f3a-b491-f01c353f1e2e"
+      "database_id": "5fb9f57b-ca34-4f3a-b491-f01c353f1e2e",
+      "migrations_dir": "drizzle/migrations"
     }
   ],
   "r2_buckets": [

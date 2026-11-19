@@ -134,3 +134,72 @@ export function generateOrderNumber(): string {
   }
   return `JY-${code}`;
 }
+
+export interface TimelineEvent {
+  id: string;
+  value: OrderStatus;
+  date: Date;
+}
+
+/**
+ * Builds the chronological timeline events for customer order tracking.
+ */
+export function buildOrderTimeline(order: {
+  status: string;
+  createdAt: string | number | Date;
+  updatedAt?: string | number | Date | null;
+}): TimelineEvent[] {
+  const createdDate = new Date(order.createdAt);
+  const updatedDate = order.updatedAt ? new Date(order.updatedAt) : createdDate;
+  const rawStatus = (order.status || "new").toLowerCase();
+  const currentStatus: OrderStatus =
+    rawStatus === "preparing" || rawStatus === "confirmed"
+      ? "preparing"
+      : rawStatus === "out_for_delivery"
+        ? "out_for_delivery"
+        : rawStatus === "delivered"
+          ? "delivered"
+          : rawStatus === "cancelled"
+            ? "cancelled"
+            : "new";
+
+  const events: TimelineEvent[] = [
+    {
+      id: "status-new",
+      value: "new",
+      date: createdDate,
+    },
+  ];
+
+  if (currentStatus === "cancelled") {
+    events.push({
+      id: "status-cancelled",
+      value: "cancelled",
+      date: updatedDate,
+    });
+  } else {
+    if (currentStatus === "preparing" || currentStatus === "out_for_delivery" || currentStatus === "delivered") {
+      events.push({
+        id: "status-preparing",
+        value: "preparing",
+        date: currentStatus === "preparing" ? updatedDate : createdDate,
+      });
+    }
+    if (currentStatus === "out_for_delivery" || currentStatus === "delivered") {
+      events.push({
+        id: "status-out_for_delivery",
+        value: "out_for_delivery",
+        date: currentStatus === "out_for_delivery" ? updatedDate : createdDate,
+      });
+    }
+    if (currentStatus === "delivered") {
+      events.push({
+        id: "status-delivered",
+        value: "delivered",
+        date: updatedDate,
+      });
+    }
+  }
+
+  return events;
+}

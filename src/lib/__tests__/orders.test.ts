@@ -4,6 +4,7 @@ import {
   getNextOrderStatus,
   calculateOrderTotals,
   generateOrderNumber,
+  buildOrderTimeline,
 } from "../orders";
 
 describe("orders business rules", () => {
@@ -102,6 +103,52 @@ describe("orders business rules", () => {
     it("generates unique codes", () => {
       const codes = new Set(Array.from({ length: 50 }, () => generateOrderNumber()));
       expect(codes.size).toBe(50);
+    });
+  });
+
+  describe("buildOrderTimeline", () => {
+    const created = new Date("2026-11-19T10:00:00Z");
+    const updated = new Date("2026-11-19T11:30:00Z");
+
+    it("returns single event for new order", () => {
+      const timeline = buildOrderTimeline({ status: "NEW", createdAt: created });
+      expect(timeline).toHaveLength(1);
+      expect(timeline[0].value).toBe("new");
+      expect(timeline[0].date).toEqual(created);
+    });
+
+    it("returns progression for preparing order", () => {
+      const timeline = buildOrderTimeline({ status: "preparing", createdAt: created, updatedAt: updated });
+      expect(timeline).toHaveLength(2);
+      expect(timeline.map((e) => e.value)).toEqual(["new", "preparing"]);
+      expect(timeline[1].date).toEqual(updated);
+    });
+
+    it("returns progression for out_for_delivery order", () => {
+      const timeline = buildOrderTimeline({ status: "out_for_delivery", createdAt: created, updatedAt: updated });
+      expect(timeline).toHaveLength(3);
+      expect(timeline.map((e) => e.value)).toEqual(["new", "preparing", "out_for_delivery"]);
+      expect(timeline[2].date).toEqual(updated);
+    });
+
+    it("returns full progression for delivered order", () => {
+      const timeline = buildOrderTimeline({ status: "DELIVERED", createdAt: created, updatedAt: updated });
+      expect(timeline).toHaveLength(4);
+      expect(timeline.map((e) => e.value)).toEqual(["new", "preparing", "out_for_delivery", "delivered"]);
+      expect(timeline[3].date).toEqual(updated);
+    });
+
+    it("returns cancelled event for cancelled order", () => {
+      const timeline = buildOrderTimeline({ status: "cancelled", createdAt: created, updatedAt: updated });
+      expect(timeline).toHaveLength(2);
+      expect(timeline.map((e) => e.value)).toEqual(["new", "cancelled"]);
+      expect(timeline[1].date).toEqual(updated);
+    });
+
+    it("handles CONFIRMED by mapping to preparing step", () => {
+      const timeline = buildOrderTimeline({ status: "CONFIRMED", createdAt: created, updatedAt: updated });
+      expect(timeline).toHaveLength(2);
+      expect(timeline.map((e) => e.value)).toEqual(["new", "preparing"]);
     });
   });
 });

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { waLink } from "@/lib/whatsapp";
 import AutoRefresh from "./AutoRefresh";
 import MarketingPixel from "@/components/MarketingPixel";
-import { OrderStatus } from "@/lib/orders";
+import { OrderStatus, buildOrderTimeline } from "@/lib/orders";
 import { getRequestOrigin } from "@/lib/site-url";
 import { getImageUrl } from "@/lib/images";
 import { getSocialImageUrl } from "@/lib/social-metadata";
@@ -115,16 +115,17 @@ export default async function OrderSuccessPage({
   const orangeMoneyPaymentNumber = shop.orangeMoneyNumber || shop.whatsapp;
 
   const items = order.items ?? [];
-  const events: any[] = [];
+  const orderReference = order.reference || order.number || "";
+
+  const currentStatus = (order.status?.toLowerCase() || "new") as OrderStatus;
+  const statusStyle = STATUS_COLORS[currentStatus] || STATUS_COLORS.new;
+  const events = buildOrderTimeline(order);
 
   const trackingLink = `${await getRequestOrigin()}/${shopSlug}/commande/${publicToken}`;
   const itemsSummary = items
     .map((i) => `${i.name}${i.options ? ` (${i.options})` : ""} x${i.quantity}`)
     .join(", ");
-  const whatsappMessage = `Bonjour ${shop.name} ! Je vous contacte au sujet de ma commande ${order.reference}${itemsSummary ? ` [${itemsSummary}]` : ""}.\nLien de suivi : ${trackingLink}`;
-
-  const currentStatus = (order.status?.toLowerCase() || "new") as OrderStatus;
-  const statusStyle = STATUS_COLORS[currentStatus] || STATUS_COLORS.new;
+  const whatsappMessage = `Bonjour ${shop.name} ! Je vous contacte au sujet de ma commande ${orderReference}${itemsSummary ? ` [${itemsSummary}]` : ""}.\nLien de suivi : ${trackingLink}`;
 
   return (
     <div className="min-h-screen pb-10 overflow-x-hidden" style={{ backgroundColor: "#FFC83D" }}>
@@ -174,7 +175,7 @@ export default async function OrderSuccessPage({
           </svg>
           <p className="text-sm font-medium text-ink break-words">
             {shop.name} a reçu ta commande{" "}
-            <span className="font-bold break-all select-all">{order.number}</span>
+            <span className="font-bold break-all select-all">{orderReference}</span>
             {shop.whatsapp ? " et te répond sur WhatsApp." : "."}
           </p>
         </div>
@@ -200,7 +201,7 @@ export default async function OrderSuccessPage({
                   className="font-bricolage font-black text-ink text-base sm:text-xl break-all select-all leading-tight mt-0.5"
                   style={{ letterSpacing: "-0.02em" }}
                 >
-                  {order.number}
+                  {orderReference}
                 </p>
               </div>
               <div className="shrink-0 text-left sm:text-right">
@@ -288,20 +289,36 @@ export default async function OrderSuccessPage({
           </TicketCard>
         </div>
 
-        {/* ─── Timeline (si events) ─── */}
-        {events.filter((e) => e.kind === "status").length > 0 && (
+        {/* ─── Timeline ─── */}
+        {events.length > 0 && (
           <div className="rounded-2xl border-[2px] border-ink p-4 mb-5" style={{ backgroundColor: "rgba(15,30,61,0.08)" }}>
             <p className="text-xs font-bold text-ink mb-3 uppercase tracking-widest">Chronologie</p>
             <div className="space-y-2">
-              {events.filter((e) => e.kind === "status").map((event) => (
-                <div key={event.id} className="flex items-center gap-2.5 text-xs">
-                  <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: "#0F1E3D" }} />
-                  <span className="font-medium text-ink">{STATUS_LABELS[event.value as OrderStatus]}</span>
-                  <span className="ml-auto" style={{ color: "#3F4B69" }}>
-                    {new Date(event.createdAt * 1000).toLocaleString("fr-FR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}
-                  </span>
-                </div>
-              ))}
+              {events.map((event, index) => {
+                const isCurrent = index === events.length - 1;
+                return (
+                  <div key={event.id} className="flex items-center gap-2.5 text-xs">
+                    <div
+                      className="w-2.5 h-2.5 rounded-full shrink-0 border border-ink"
+                      style={{
+                        backgroundColor: isCurrent ? "#0F1E3D" : "#0E7C66",
+                      }}
+                    />
+                    <span className={`font-medium ${isCurrent ? "font-bold text-ink" : "text-ink/80"}`}>
+                      {STATUS_LABELS[event.value]}
+                    </span>
+                    <span className="ml-auto" style={{ color: "#3F4B69" }}>
+                      {event.date.toLocaleString("fr-FR", {
+                        day: "2-digit",
+                        month: "2-digit",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        timeZone: "Africa/Dakar",
+                      })}
+                    </span>
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}

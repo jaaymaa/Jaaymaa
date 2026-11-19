@@ -13,8 +13,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "db:generate": "drizzle-kit generate",
-    "db:migrate:local": "wrangler d1 execute jaayma-db --local --file=./drizzle/migrations/0000_modern_captain_america.sql",
-    "db:migrate:remote": "wrangler d1 execute jaayma-db --remote --file=./drizzle/migrations/0000_modern_captain_america.sql"
+    "db:migrate:local": "wrangler d1 migrations apply jaayma-db --local",
+    "db:migrate:remote": "wrangler d1 migrations apply jaayma-db --remote"
   },
   "dependencies": {
     "@cloudflare/workers-types": "^5.20261005.1",
